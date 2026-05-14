@@ -271,7 +271,76 @@ h2 {
 }
 
 .status-message {
-  min-height: 1.35rem;
+  display: none;
+}
+
+.status-message.is-visible {
+  display: block;
+}
+
+.app-shell:not(.has-photo) .photo-workspace,
+.app-shell:not(.has-photo) .photo-tools,
+.app-shell:not(.has-photo) .photo-next-action {
+  display: none;
+}
+
+.app-shell.has-photo .photo-empty-card {
+  display: none;
+}
+
+.app-shell:not(.has-photo)[data-step="2"] .photo-screen {
+  justify-content: center;
+}
+
+.photo-empty-card {
+  display: grid;
+  gap: 13px;
+  align-content: center;
+  justify-items: center;
+  min-height: min(52dvh, 430px);
+  padding: 24px 18px;
+  border: 1px solid rgba(234, 190, 90, 0.2);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(240, 199, 106, 0.14), transparent 48%),
+    rgba(21, 17, 12, 0.78);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  color: var(--gold-strong);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.06);
+}
+
+.empty-icon svg {
+  width: 1.55rem;
+  height: 1.55rem;
+}
+
+.empty-title {
+  color: var(--text);
+  font-size: 1.22rem;
+  font-weight: 900;
+  line-height: 1.28;
+}
+
+.empty-text {
+  max-width: 18rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.photo-empty-card .upload-button {
+  margin-top: 4px;
 }
 
 .tool-stack {

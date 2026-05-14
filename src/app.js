@@ -14,6 +14,7 @@ const screenCounter = document.querySelector("#screenCounter");
 const screenTitle = document.querySelector("#screenTitle");
 const startButton = document.querySelector("#startButton");
 const photoInput = document.querySelector("#photoInput");
+const replacePhotoButton = document.querySelector("#replacePhotoButton");
 const fileName = document.querySelector("#fileName");
 const frameList = document.querySelector("#frameList");
 const renderedPreviews = document.querySelectorAll(".rendered-preview");
@@ -53,14 +54,16 @@ const SCREEN_META = {
   4: "完成分享",
 };
 
-function setStatus(message) {
+function setStatus(message, { persistent = false } = {}) {
   statusMessage.textContent = message;
+  statusMessage.classList.toggle("is-visible", Boolean(state.photo) || persistent);
 }
 
 function setControlsEnabled() {
   const hasPhoto = Boolean(state.photo);
   const canExport = hasPhoto && state.frameConfirmed;
 
+  appShell.classList.toggle("has-photo", hasPhoto);
   toFrameButton.disabled = !hasPhoto;
   shareButton.disabled = !canExport;
   resetButton.disabled = !hasPhoto;
@@ -408,7 +411,7 @@ function syncRenderedPreviews() {
 function scheduleRender() {
   window.requestAnimationFrame(() => {
     render().catch(() => {
-      setStatus("相框載入失敗，請重新整理頁面。");
+      setStatus("相框載入失敗，請重新整理頁面。", { persistent: true });
     });
   });
 }
@@ -427,11 +430,11 @@ async function handlePhotoChange(event) {
   }
 
   if (!file.type.startsWith("image/")) {
-    setStatus("請選擇圖片檔。");
+    setStatus("請選擇圖片檔。", { persistent: true });
     return;
   }
 
-  setStatus("照片載入中...");
+  setStatus("照片載入中...", { persistent: true });
 
   try {
     if (state.photo && typeof state.photo.close === "function") {
@@ -450,7 +453,7 @@ async function handlePhotoChange(event) {
     scheduleRender();
     setStep(2);
   } catch {
-    setStatus("照片載入失敗，請換一張圖片試試。");
+    setStatus("照片載入失敗，請換一張圖片試試。", { persistent: true });
   }
 }
 
@@ -624,6 +627,9 @@ function resetCreationFlow() {
 }
 
 photoInput.addEventListener("change", handlePhotoChange);
+replacePhotoButton.addEventListener("click", () => {
+  photoInput.click();
+});
 
 startButton.addEventListener("click", () => {
   setStep(2);
