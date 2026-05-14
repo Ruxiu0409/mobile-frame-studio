@@ -148,7 +148,7 @@ h2 {
 
 .app-topbar {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 58px;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
   align-items: center;
   gap: 8px;
   min-height: 44px;
@@ -187,18 +187,10 @@ h2 {
   white-space: nowrap;
 }
 
-.event-date {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 58px;
-  height: 36px;
-  color: var(--gold-strong);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 250, 240, 0.04);
-  font-size: 0.78rem;
-  font-weight: 900;
+.topbar-spacer {
+  display: block;
+  width: 42px;
+  height: 42px;
 }
 
 .app-screen {
