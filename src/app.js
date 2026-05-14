@@ -22,7 +22,6 @@ const zoomRange = document.querySelector("#zoomRange");
 const resetButton = document.querySelector("#resetButton");
 const toFrameButton = document.querySelector("#toFrameButton");
 const shareButton = document.querySelector("#shareButton");
-const downloadButton = document.querySelector("#downloadButton");
 const statusMessage = document.querySelector("#statusMessage");
 
 const state = {
@@ -63,7 +62,6 @@ function setControlsEnabled() {
 
   toFrameButton.disabled = !hasPhoto;
   shareButton.disabled = !canExport;
-  downloadButton.disabled = !canExport;
   resetButton.disabled = !hasPhoto;
   zoomRange.disabled = !hasPhoto;
 }
@@ -595,25 +593,6 @@ async function handleShare() {
   }
 }
 
-async function handleDownload() {
-  if (!state.photo) {
-    return;
-  }
-
-  downloadButton.disabled = true;
-  setStatus("正在輸出 PNG...");
-
-  try {
-    const blob = await exportBlob();
-    downloadBlob(blob);
-    setStatus("PNG 已輸出。");
-  } catch {
-    setStatus("輸出失敗，請重新整理後再試。");
-  } finally {
-    downloadButton.disabled = false;
-  }
-}
-
 photoInput.addEventListener("change", handlePhotoChange);
 
 startButton.addEventListener("click", () => {
@@ -649,7 +628,6 @@ resetButton.addEventListener("click", () => {
 });
 
 shareButton.addEventListener("click", handleShare);
-downloadButton.addEventListener("click", handleDownload);
 
 canvas.addEventListener("pointerdown", handlePointerDown);
 canvas.addEventListener("pointermove", handlePointerMove);
