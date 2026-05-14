@@ -8,9 +8,7 @@ const canvas = document.querySelector("#previewCanvas");
 const ctx = canvas.getContext("2d", { alpha: false });
 const appShell = document.querySelector(".app-shell");
 const panels = document.querySelectorAll("[data-step-panel]");
-const stepIndicators = document.querySelectorAll("[data-step-indicator]");
 const backButton = document.querySelector("#backButton");
-const screenCounter = document.querySelector("#screenCounter");
 const screenTitle = document.querySelector("#screenTitle");
 const startButton = document.querySelector("#startButton");
 const photoInput = document.querySelector("#photoInput");
@@ -92,18 +90,11 @@ function setStep(step) {
 
   state.step = nextStep;
   appShell.dataset.step = String(nextStep);
-  screenCounter.textContent = `步驟 ${nextStep} / 4`;
   screenTitle.textContent = SCREEN_META[nextStep];
   backButton.disabled = nextStep === 1;
 
   panels.forEach((panel) => {
     panel.classList.toggle("is-active", panel.dataset.stepPanel === String(nextStep));
-  });
-
-  stepIndicators.forEach((indicator) => {
-    const indicatorStep = Number(indicator.dataset.stepIndicator);
-    indicator.classList.toggle("is-active", indicatorStep === nextStep);
-    indicator.classList.toggle("is-complete", indicatorStep < nextStep);
   });
 
   if (nextStep === 2 && state.photo) {
