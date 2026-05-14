@@ -11,14 +11,38 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <main class="app-shell" data-step="1">
       <header class="site-header">
-        <div>
-          <p class="brand-mark">iOS Club</p>
-          <h1>耀序相框製作</h1>
-        </div>
+        <p class="brand-mark">iOS Club</p>
         <span class="event-date">05.16</span>
       </header>
+
+      <nav class="stepper" aria-label="製作流程">
+        <span class="step-dot is-active" data-step-indicator="1">介紹</span>
+        <span class="step-dot" data-step-indicator="2">照片</span>
+        <span class="step-dot" data-step-indicator="3">相框</span>
+        <span class="step-dot" data-step-indicator="4">完成</span>
+      </nav>
+
+      <section class="intro-screen screen-panel is-active" data-step-panel="1" aria-labelledby="introTitle">
+        <div class="intro-copy">
+          <p class="intro-kicker">9th iOS Club</p>
+          <h1 id="introTitle">耀序相框製作</h1>
+          <p class="intro-text">上傳照片，套上 05.16 活動相框，完成後直接分享給朋友。</p>
+        </div>
+
+        <div class="hero-frame" aria-hidden="true">
+          <img src="assets/frames/shine-horizontal.png" alt="" />
+        </div>
+
+        <button id="startButton" class="primary-action wide-action" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M5 12h14" />
+            <path d="m13 6 6 6-6 6" />
+          </svg>
+          開始製作
+        </button>
+      </section>
 
       <section class="studio" aria-label="相框製作工具">
         <section class="preview-panel" aria-label="照片預覽">
@@ -26,8 +50,73 @@
             <canvas id="previewCanvas" width="2400" height="1800" aria-label="相框合成預覽"></canvas>
           </div>
           <p id="statusMessage" class="status-message" role="status">上傳照片開始製作。</p>
-          <div class="action-bar" aria-label="輸出動作">
-            <button id="shareButton" class="primary-action" type="button" disabled>
+        </section>
+
+        <section class="screen-panel tool-screen" data-step-panel="2" aria-labelledby="photoStepTitle">
+          <div class="panel-heading">
+            <span>步驟 2</span>
+            <h2 id="photoStepTitle">選擇照片與預覽</h2>
+          </div>
+
+          <input id="photoInput" type="file" accept="image/*" />
+          <label class="upload-button" for="photoInput">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M4 17.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5" />
+              <path d="M12 3v12" />
+              <path d="m7 8 5-5 5 5" />
+            </svg>
+            選擇照片
+          </label>
+          <p id="fileName" class="file-name">尚未選擇照片</p>
+
+          <label class="switch-row">
+            <span>
+              <strong>自動調色</strong>
+              <small>亮度、對比與色彩會在輸出時一起套用</small>
+            </span>
+            <input id="autoToneToggle" type="checkbox" checked />
+          </label>
+
+          <label class="range-row" for="zoomRange">
+            <span>照片縮放</span>
+            <input id="zoomRange" type="range" min="1" max="3" step="0.01" value="1" disabled />
+          </label>
+
+          <button id="resetButton" class="ghost-action" type="button" disabled>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M3 12a9 9 0 1 0 3-6.7" />
+              <path d="M3 4v6h6" />
+            </svg>
+            重設位置
+          </button>
+
+          <div class="flow-actions">
+            <button class="secondary-action" type="button" data-goto-step="1">上一步</button>
+            <button id="toFrameButton" class="primary-action" type="button" disabled>下一步：選相框</button>
+          </div>
+        </section>
+
+        <section class="screen-panel tool-screen" data-step-panel="3" aria-labelledby="frameStepTitle">
+          <div class="panel-heading">
+            <span>步驟 3</span>
+            <h2 id="frameStepTitle">選擇相框</h2>
+          </div>
+
+          <div id="frameList" class="frame-list" role="listbox" aria-label="可用相框"></div>
+
+          <div class="flow-actions">
+            <button class="secondary-action" type="button" data-goto-step="2">上一步</button>
+          </div>
+        </section>
+
+        <section class="screen-panel tool-screen" data-step-panel="4" aria-labelledby="finishStepTitle">
+          <div class="panel-heading">
+            <span>步驟 4</span>
+            <h2 id="finishStepTitle">下載與分享</h2>
+          </div>
+
+          <div class="action-stack" aria-label="輸出動作">
+            <button id="shareButton" class="primary-action wide-action" type="button" disabled>
               <svg aria-hidden="true" viewBox="0 0 24 24">
                 <path d="M12 3v12" />
                 <path d="m7 8 5-5 5 5" />
@@ -35,61 +124,21 @@
               </svg>
               一鍵分享
             </button>
-            <button id="downloadButton" class="secondary-action" type="button" disabled>
+            <button id="downloadButton" class="secondary-action wide-action" type="button" disabled>
               <svg aria-hidden="true" viewBox="0 0 24 24">
                 <path d="M12 3v12" />
                 <path d="m7 10 5 5 5-5" />
                 <path d="M5 21h14" />
               </svg>
-              下載
+              下載 PNG
             </button>
           </div>
+
+          <div class="flow-actions">
+            <button class="secondary-action" type="button" data-goto-step="3">重選相框</button>
+            <button class="ghost-action" type="button" data-goto-step="2">換照片</button>
+          </div>
         </section>
-
-        <aside class="control-panel" aria-label="製作設定">
-          <section class="tool-section">
-            <h2>照片</h2>
-            <input id="photoInput" type="file" accept="image/*" />
-            <label class="upload-button" for="photoInput">
-              <svg aria-hidden="true" viewBox="0 0 24 24">
-                <path d="M4 17.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5" />
-                <path d="M12 3v12" />
-                <path d="m7 8 5-5 5 5" />
-              </svg>
-              選擇照片
-            </label>
-            <p id="fileName" class="file-name">尚未選擇照片</p>
-          </section>
-
-          <section class="tool-section">
-            <h2>相框</h2>
-            <div id="frameList" class="frame-list" role="listbox" aria-label="可用相框"></div>
-          </section>
-
-          <section class="tool-section">
-            <h2>調整</h2>
-            <label class="switch-row">
-              <span>
-                <strong>自動調色</strong>
-                <small>亮度、對比與色彩會在輸出時一起套用</small>
-              </span>
-              <input id="autoToneToggle" type="checkbox" checked />
-            </label>
-
-            <label class="range-row" for="zoomRange">
-              <span>照片縮放</span>
-              <input id="zoomRange" type="range" min="1" max="3" step="0.01" value="1" disabled />
-            </label>
-
-            <button id="resetButton" class="ghost-action" type="button" disabled>
-              <svg aria-hidden="true" viewBox="0 0 24 24">
-                <path d="M3 12a9 9 0 1 0 3-6.7" />
-                <path d="M3 4v6h6" />
-              </svg>
-              重設位置
-            </button>
-          </section>
-        </aside>
       </section>
     </main>
 

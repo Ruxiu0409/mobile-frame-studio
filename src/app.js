@@ -6,20 +6,27 @@ import {
 
 const canvas = document.querySelector("#previewCanvas");
 const ctx = canvas.getContext("2d", { alpha: false });
+const appShell = document.querySelector(".app-shell");
+const panels = document.querySelectorAll("[data-step-panel]");
+const stepIndicators = document.querySelectorAll("[data-step-indicator]");
+const startButton = document.querySelector("#startButton");
 const photoInput = document.querySelector("#photoInput");
 const fileName = document.querySelector("#fileName");
 const frameList = document.querySelector("#frameList");
 const autoToneToggle = document.querySelector("#autoToneToggle");
 const zoomRange = document.querySelector("#zoomRange");
 const resetButton = document.querySelector("#resetButton");
+const toFrameButton = document.querySelector("#toFrameButton");
 const shareButton = document.querySelector("#shareButton");
 const downloadButton = document.querySelector("#downloadButton");
 const statusMessage = document.querySelector("#statusMessage");
 
 const state = {
   frame: FRAME_PRESETS[0],
+  frameConfirmed: false,
   photo: null,
   photoName: "",
+  step: 1,
   autoTone: true,
   transform: {
     scale: 1,
@@ -38,11 +45,54 @@ function setStatus(message) {
   statusMessage.textContent = message;
 }
 
-function setControlsEnabled(enabled) {
-  shareButton.disabled = !enabled;
-  downloadButton.disabled = !enabled;
-  resetButton.disabled = !enabled;
-  zoomRange.disabled = !enabled;
+function setControlsEnabled() {
+  const hasPhoto = Boolean(state.photo);
+  const canExport = hasPhoto && state.frameConfirmed;
+
+  toFrameButton.disabled = !hasPhoto;
+  shareButton.disabled = !canExport;
+  downloadButton.disabled = !canExport;
+  resetButton.disabled = !hasPhoto;
+  zoomRange.disabled = !hasPhoto;
+}
+
+function setStep(step) {
+  let nextStep = Math.min(Math.max(step, 1), 4);
+
+  if (nextStep > 2 && !state.photo) {
+    nextStep = 2;
+  }
+
+  if (nextStep === 4 && !state.frameConfirmed) {
+    nextStep = 3;
+  }
+
+  state.step = nextStep;
+  appShell.dataset.step = String(nextStep);
+
+  panels.forEach((panel) => {
+    panel.classList.toggle("is-active", panel.dataset.stepPanel === String(nextStep));
+  });
+
+  stepIndicators.forEach((indicator) => {
+    const indicatorStep = Number(indicator.dataset.stepIndicator);
+    indicator.classList.toggle("is-active", indicatorStep === nextStep);
+    indicator.classList.toggle("is-complete", indicatorStep < nextStep);
+  });
+
+  if (nextStep === 2 && state.photo) {
+    setStatus("已套用照片，可拖曳預覽調整位置。");
+  } else if (nextStep === 2) {
+    setStatus("上傳照片開始製作。");
+  } else if (nextStep === 3) {
+    setStatus("點選相框後會進入下載與分享。");
+  } else if (nextStep === 4) {
+    setStatus("相框已套用，可以下載或分享。");
+  }
+
+  setControlsEnabled();
+  scheduleRender();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function createIconText(frame) {
@@ -57,7 +107,7 @@ function renderFrameOptions() {
     option.type = "button";
     option.className = "frame-option";
     option.setAttribute("role", "option");
-    option.setAttribute("aria-selected", String(frame.id === state.frame.id));
+    option.setAttribute("aria-selected", String(state.frameConfirmed && frame.id === state.frame.id));
     option.innerHTML = `
       <img src="${frame.src}" alt="" loading="lazy" />
       <span>
@@ -67,11 +117,13 @@ function renderFrameOptions() {
     `;
     option.addEventListener("click", () => {
       state.frame = frame;
+      state.frameConfirmed = true;
       canvas.width = frame.width;
       canvas.height = frame.height;
       normalizeCurrentTransform();
       renderFrameOptions();
       scheduleRender();
+      setStep(4);
     });
     frameList.append(option);
   });
@@ -229,7 +281,9 @@ async function render() {
     drawEmptyState();
   }
 
-  ctx.drawImage(frameAsset.overlay, 0, 0, state.frame.width, state.frame.height);
+  if (state.step >= 3) {
+    ctx.drawImage(frameAsset.overlay, 0, 0, state.frame.width, state.frame.height);
+  }
 }
 
 function scheduleRender() {
@@ -243,7 +297,7 @@ function scheduleRender() {
 function updatePhotoUi() {
   const hasPhoto = Boolean(state.photo);
   fileName.textContent = hasPhoto ? state.photoName : "尚未選擇照片";
-  setControlsEnabled(hasPhoto);
+  setControlsEnabled();
 }
 
 async function handlePhotoChange(event) {
@@ -267,11 +321,14 @@ async function handlePhotoChange(event) {
 
     state.photo = await loadPhoto(file);
     state.photoName = file.name;
+    state.frameConfirmed = false;
     state.transform = { scale: 1, offsetX: 0, offsetY: 0 };
     normalizeCurrentTransform();
     updatePhotoUi();
+    renderFrameOptions();
     setStatus("已套用照片，可拖曳預覽調整位置。");
     scheduleRender();
+    setStep(2);
   } catch {
     setStatus("照片載入失敗，請換一張圖片試試。");
   }
@@ -438,6 +495,20 @@ async function handleDownload() {
 
 photoInput.addEventListener("change", handlePhotoChange);
 
+startButton.addEventListener("click", () => {
+  setStep(2);
+});
+
+toFrameButton.addEventListener("click", () => {
+  setStep(3);
+});
+
+document.querySelectorAll("[data-goto-step]").forEach((button) => {
+  button.addEventListener("click", () => {
+    setStep(Number(button.dataset.gotoStep));
+  });
+});
+
 autoToneToggle.addEventListener("change", () => {
   state.autoTone = autoToneToggle.checked;
   scheduleRender();
@@ -467,4 +538,4 @@ canvas.width = state.frame.width;
 canvas.height = state.frame.height;
 renderFrameOptions();
 updatePhotoUi();
-scheduleRender();
+setStep(1);
