@@ -40,6 +40,7 @@ const state = {
 };
 
 const frameCache = new Map();
+const framePreviewCache = new Map();
 const activePointers = new Map();
 let dragStart = null;
 let pinchStart = null;
@@ -100,6 +101,7 @@ function setStep(step) {
     setStatus("上傳照片開始製作。");
   } else if (nextStep === 3) {
     setStatus("點選相框後會進入下載與分享。");
+    renderFrameOptions();
   } else if (nextStep === 4) {
     setStatus("相框已套用，可以下載或分享。");
   }
@@ -122,9 +124,10 @@ function renderFrameOptions() {
     option.className = "frame-option";
     option.setAttribute("role", "option");
     option.setAttribute("aria-selected", String(frame.id === state.frame.id));
+    option.style.setProperty("--preview-aspect", `${frame.width} / ${frame.height}`);
     option.innerHTML = `
-      <img src="${frame.src}" alt="" loading="lazy" />
-      <span>
+      <img class="frame-option-preview" src="${frame.src}" alt="" loading="lazy" />
+      <span class="frame-option-meta">
         <strong>${frame.name}</strong>
         <small>${createIconText(frame)}</small>
       </span>
@@ -140,7 +143,17 @@ function renderFrameOptions() {
       setStep(4);
     });
     frameList.append(option);
+    updateFrameOptionPreview(option, frame);
   });
+}
+
+async function updateFrameOptionPreview(option, frame) {
+  if (!state.photo) {
+    return;
+  }
+
+  const preview = option.querySelector(".frame-option-preview");
+  preview.src = await getFramePreview(frame);
 }
 
 function loadImage(src) {
@@ -214,6 +227,76 @@ async function getFrameAsset(frame) {
   return frameCache.get(frame.id);
 }
 
+async function getFramePreview(frame) {
+  const cacheKey = [
+    frame.id,
+    state.photoName,
+    state.autoTone,
+    state.transform.scale.toFixed(3),
+    Math.round(state.transform.offsetX),
+    Math.round(state.transform.offsetY),
+  ].join(":");
+
+  if (!framePreviewCache.has(cacheKey)) {
+    framePreviewCache.set(cacheKey, createFramePreview(frame));
+  }
+
+  return framePreviewCache.get(cacheKey);
+}
+
+async function createFramePreview(frame) {
+  const frameAsset = await getFrameAsset(frame);
+  const previewWidth = 900;
+  const previewHeight = Math.round(previewWidth * (frame.height / frame.width));
+  const previewCanvas = document.createElement("canvas");
+  previewCanvas.width = previewWidth;
+  previewCanvas.height = previewHeight;
+
+  const previewCtx = previewCanvas.getContext("2d");
+  drawPaperBackground(previewCtx, previewWidth, previewHeight);
+
+  if (state.photo) {
+    const transform = normalizeTransform({
+      imageWidth: state.photo.width,
+      imageHeight: state.photo.height,
+      canvasWidth: frame.width,
+      canvasHeight: frame.height,
+      scale: state.transform.scale,
+      offsetX: state.transform.offsetX,
+      offsetY: state.transform.offsetY,
+    });
+    const rect = fitRect(
+      state.photo.width,
+      state.photo.height,
+      frame.width,
+      frame.height,
+      transform.scale,
+      transform.offsetX,
+      transform.offsetY,
+    );
+    const scaleX = previewWidth / frame.width;
+    const scaleY = previewHeight / frame.height;
+
+    previewCtx.save();
+    previewCtx.filter = state.autoTone ? "brightness(1.035) contrast(1.08) saturate(1.16)" : "none";
+    previewCtx.drawImage(
+      state.photo,
+      rect.x * scaleX,
+      rect.y * scaleY,
+      rect.width * scaleX,
+      rect.height * scaleY,
+    );
+    previewCtx.restore();
+
+    if (state.autoTone) {
+      drawToneVignette(previewCtx, previewWidth, previewHeight);
+    }
+  }
+
+  previewCtx.drawImage(frameAsset.overlay, 0, 0, previewWidth, previewHeight);
+  return previewCanvas.toDataURL("image/png");
+}
+
 function normalizeCurrentTransform() {
   if (!state.photo) {
     state.transform = { scale: 1, offsetX: 0, offsetY: 0 };
@@ -234,7 +317,7 @@ function normalizeCurrentTransform() {
 }
 
 function drawEmptyState() {
-  drawPaperBackground();
+  drawPaperBackground(ctx, state.frame.width, state.frame.height);
 
   ctx.fillStyle = "rgba(75, 54, 18, 0.72)";
   ctx.textAlign = "center";
@@ -243,16 +326,16 @@ function drawEmptyState() {
   ctx.fillText("上傳照片開始製作", state.frame.width / 2, state.frame.height / 2);
 }
 
-function drawPaperBackground() {
-  const gradient = ctx.createLinearGradient(0, 0, state.frame.width, state.frame.height);
+function drawPaperBackground(targetCtx, width, height) {
+  const gradient = targetCtx.createLinearGradient(0, 0, width, height);
   gradient.addColorStop(0, "#fffaf0");
   gradient.addColorStop(1, "#f0e3ca");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, state.frame.width, state.frame.height);
+  targetCtx.fillStyle = gradient;
+  targetCtx.fillRect(0, 0, width, height);
 }
 
 function drawPhoto() {
-  drawPaperBackground();
+  drawPaperBackground(ctx, state.frame.width, state.frame.height);
 
   const rect = fitRect(
     state.photo.width,
@@ -270,19 +353,23 @@ function drawPhoto() {
   ctx.restore();
 
   if (state.autoTone) {
-    const vignette = ctx.createRadialGradient(
-      state.frame.width / 2,
-      state.frame.height / 2,
-      state.frame.width * 0.18,
-      state.frame.width / 2,
-      state.frame.height / 2,
-      state.frame.width * 0.72,
-    );
-    vignette.addColorStop(0, "rgba(255, 245, 219, 0.04)");
-    vignette.addColorStop(1, "rgba(32, 19, 3, 0.16)");
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, state.frame.width, state.frame.height);
+    drawToneVignette(ctx, state.frame.width, state.frame.height);
   }
+}
+
+function drawToneVignette(targetCtx, width, height) {
+  const vignette = targetCtx.createRadialGradient(
+    width / 2,
+    height / 2,
+    width * 0.18,
+    width / 2,
+    height / 2,
+    width * 0.72,
+  );
+  vignette.addColorStop(0, "rgba(255, 245, 219, 0.04)");
+  vignette.addColorStop(1, "rgba(32, 19, 3, 0.16)");
+  targetCtx.fillStyle = vignette;
+  targetCtx.fillRect(0, 0, width, height);
 }
 
 async function render() {
@@ -355,6 +442,7 @@ async function handlePhotoChange(event) {
     state.photo = await loadPhoto(file);
     state.photoName = file.name;
     state.frameConfirmed = false;
+    framePreviewCache.clear();
     state.transform = { scale: 1, offsetX: 0, offsetY: 0 };
     normalizeCurrentTransform();
     updatePhotoUi();
@@ -542,18 +630,21 @@ toFrameButton.addEventListener("click", () => {
 
 autoToneToggle.addEventListener("change", () => {
   state.autoTone = autoToneToggle.checked;
+  framePreviewCache.clear();
   scheduleRender();
 });
 
 zoomRange.addEventListener("input", () => {
   state.transform.scale = Number(zoomRange.value);
   normalizeCurrentTransform();
+  framePreviewCache.clear();
   scheduleRender();
 });
 
 resetButton.addEventListener("click", () => {
   state.transform = { scale: 1, offsetX: 0, offsetY: 0 };
   normalizeCurrentTransform();
+  framePreviewCache.clear();
   scheduleRender();
 });
 
