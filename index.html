@@ -12,19 +12,27 @@
   </head>
   <body>
     <main class="app-shell" data-step="1">
-      <header class="site-header">
-        <p class="brand-mark">iOS Club</p>
+      <header class="app-topbar">
+        <button id="backButton" class="back-button" type="button" aria-label="返回上一頁">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+        <div class="screen-heading">
+          <span id="screenCounter">步驟 1 / 4</span>
+          <strong id="screenTitle">耀序相框製作</strong>
+        </div>
         <span class="event-date">05.16</span>
       </header>
 
-      <nav class="stepper" aria-label="製作流程">
-        <span class="step-dot is-active" data-step-indicator="1">介紹</span>
-        <span class="step-dot" data-step-indicator="2">照片</span>
-        <span class="step-dot" data-step-indicator="3">相框</span>
-        <span class="step-dot" data-step-indicator="4">完成</span>
-      </nav>
+      <div class="progress-track" aria-hidden="true">
+        <span class="progress-segment is-active" data-step-indicator="1"></span>
+        <span class="progress-segment" data-step-indicator="2"></span>
+        <span class="progress-segment" data-step-indicator="3"></span>
+        <span class="progress-segment" data-step-indicator="4"></span>
+      </div>
 
-      <section class="intro-screen screen-panel is-active" data-step-panel="1" aria-labelledby="introTitle">
+      <section class="app-screen intro-screen is-active" data-step-panel="1" aria-labelledby="introTitle">
         <div class="intro-copy">
           <p class="intro-kicker">9th iOS Club</p>
           <h1 id="introTitle">耀序相框製作</h1>
@@ -35,7 +43,7 @@
           <img src="assets/frames/shine-horizontal.png" alt="" />
         </div>
 
-        <button id="startButton" class="primary-action wide-action" type="button">
+        <button id="startButton" class="primary-action wide-action bottom-action" type="button">
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <path d="M5 12h14" />
             <path d="m13 6 6 6-6 6" />
@@ -44,20 +52,18 @@
         </button>
       </section>
 
-      <section class="studio" aria-label="相框製作工具">
-        <section class="preview-panel" aria-label="照片預覽">
-          <div class="canvas-frame">
-            <canvas id="previewCanvas" width="2400" height="1800" aria-label="相框合成預覽"></canvas>
-          </div>
-          <p id="statusMessage" class="status-message" role="status">上傳照片開始製作。</p>
-        </section>
+      <section class="app-screen photo-screen" data-step-panel="2" aria-labelledby="photoStepTitle">
+        <div class="screen-copy">
+          <h2 id="photoStepTitle">選擇照片</h2>
+          <p>照片會完整放進白底預覽，可用縮放與拖曳微調位置。</p>
+        </div>
 
-        <section class="screen-panel tool-screen" data-step-panel="2" aria-labelledby="photoStepTitle">
-          <div class="panel-heading">
-            <span>步驟 2</span>
-            <h2 id="photoStepTitle">選擇照片與預覽</h2>
-          </div>
+        <div class="preview-card">
+          <canvas id="previewCanvas" width="2400" height="1800" aria-label="照片預覽"></canvas>
+        </div>
+        <p id="statusMessage" class="status-message" role="status">上傳照片開始製作。</p>
 
+        <div class="tool-stack">
           <input id="photoInput" type="file" accept="image/*" />
           <label class="upload-button" for="photoInput">
             <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -89,56 +95,54 @@
             </svg>
             重設位置
           </button>
+        </div>
 
-          <div class="flow-actions">
-            <button class="secondary-action" type="button" data-goto-step="1">上一步</button>
-            <button id="toFrameButton" class="primary-action" type="button" disabled>下一步：選相框</button>
-          </div>
-        </section>
+        <button id="toFrameButton" class="primary-action wide-action bottom-action" type="button" disabled>
+          下一步：選相框
+        </button>
+      </section>
 
-        <section class="screen-panel tool-screen" data-step-panel="3" aria-labelledby="frameStepTitle">
-          <div class="panel-heading">
-            <span>步驟 3</span>
-            <h2 id="frameStepTitle">選擇相框</h2>
-          </div>
+      <section class="app-screen frame-screen" data-step-panel="3" aria-labelledby="frameStepTitle">
+        <div class="screen-copy">
+          <h2 id="frameStepTitle">選擇相框</h2>
+          <p>點選相框後會產生最後輸出版本。</p>
+        </div>
 
-          <div id="frameList" class="frame-list" role="listbox" aria-label="可用相框"></div>
+        <div class="preview-card compact-preview">
+          <img class="rendered-preview" alt="目前合成預覽" />
+        </div>
 
-          <div class="flow-actions">
-            <button class="secondary-action" type="button" data-goto-step="2">上一步</button>
-          </div>
-        </section>
+        <div id="frameList" class="frame-list" role="listbox" aria-label="可用相框"></div>
+      </section>
 
-        <section class="screen-panel tool-screen" data-step-panel="4" aria-labelledby="finishStepTitle">
-          <div class="panel-heading">
-            <span>步驟 4</span>
-            <h2 id="finishStepTitle">下載與分享</h2>
-          </div>
+      <section class="app-screen finish-screen" data-step-panel="4" aria-labelledby="finishStepTitle">
+        <div class="screen-copy">
+          <h2 id="finishStepTitle">完成</h2>
+          <p>確認照片後，下載或直接分享給朋友。</p>
+        </div>
 
-          <div class="action-stack" aria-label="輸出動作">
-            <button id="shareButton" class="primary-action wide-action" type="button" disabled>
-              <svg aria-hidden="true" viewBox="0 0 24 24">
-                <path d="M12 3v12" />
-                <path d="m7 8 5-5 5 5" />
-                <path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" />
-              </svg>
-              一鍵分享
-            </button>
-            <button id="downloadButton" class="secondary-action wide-action" type="button" disabled>
-              <svg aria-hidden="true" viewBox="0 0 24 24">
-                <path d="M12 3v12" />
-                <path d="m7 10 5 5 5-5" />
-                <path d="M5 21h14" />
-              </svg>
-              下載 PNG
-            </button>
-          </div>
+        <div class="preview-card final-preview">
+          <img class="rendered-preview" alt="完成的相框照片" />
+        </div>
 
-          <div class="flow-actions">
-            <button class="secondary-action" type="button" data-goto-step="3">重選相框</button>
-            <button class="ghost-action" type="button" data-goto-step="2">換照片</button>
-          </div>
-        </section>
+        <div class="action-stack bottom-action" aria-label="輸出動作">
+          <button id="shareButton" class="primary-action wide-action" type="button" disabled>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M12 3v12" />
+              <path d="m7 8 5-5 5 5" />
+              <path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" />
+            </svg>
+            一鍵分享
+          </button>
+          <button id="downloadButton" class="secondary-action wide-action" type="button" disabled>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M12 3v12" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M5 21h14" />
+            </svg>
+            下載 PNG
+          </button>
+        </div>
       </section>
     </main>
 

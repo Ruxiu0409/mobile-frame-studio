@@ -9,10 +9,14 @@ const ctx = canvas.getContext("2d", { alpha: false });
 const appShell = document.querySelector(".app-shell");
 const panels = document.querySelectorAll("[data-step-panel]");
 const stepIndicators = document.querySelectorAll("[data-step-indicator]");
+const backButton = document.querySelector("#backButton");
+const screenCounter = document.querySelector("#screenCounter");
+const screenTitle = document.querySelector("#screenTitle");
 const startButton = document.querySelector("#startButton");
 const photoInput = document.querySelector("#photoInput");
 const fileName = document.querySelector("#fileName");
 const frameList = document.querySelector("#frameList");
+const renderedPreviews = document.querySelectorAll(".rendered-preview");
 const autoToneToggle = document.querySelector("#autoToneToggle");
 const zoomRange = document.querySelector("#zoomRange");
 const resetButton = document.querySelector("#resetButton");
@@ -40,6 +44,13 @@ const activePointers = new Map();
 let dragStart = null;
 let pinchStart = null;
 let renderFrame = 0;
+
+const SCREEN_META = {
+  1: "耀序相框製作",
+  2: "選擇照片",
+  3: "選擇相框",
+  4: "下載與分享",
+};
 
 function setStatus(message) {
   statusMessage.textContent = message;
@@ -69,6 +80,9 @@ function setStep(step) {
 
   state.step = nextStep;
   appShell.dataset.step = String(nextStep);
+  screenCounter.textContent = `步驟 ${nextStep} / 4`;
+  screenTitle.textContent = SCREEN_META[nextStep];
+  backButton.disabled = nextStep === 1;
 
   panels.forEach((panel) => {
     panel.classList.toggle("is-active", panel.dataset.stepPanel === String(nextStep));
@@ -107,7 +121,7 @@ function renderFrameOptions() {
     option.type = "button";
     option.className = "frame-option";
     option.setAttribute("role", "option");
-    option.setAttribute("aria-selected", String(state.frameConfirmed && frame.id === state.frame.id));
+    option.setAttribute("aria-selected", String(frame.id === state.frame.id));
     option.innerHTML = `
       <img src="${frame.src}" alt="" loading="lazy" />
       <span>
@@ -290,6 +304,19 @@ async function render() {
   if (state.step >= 3) {
     ctx.drawImage(frameAsset.overlay, 0, 0, state.frame.width, state.frame.height);
   }
+
+  syncRenderedPreviews();
+}
+
+function syncRenderedPreviews() {
+  if (state.step < 3) {
+    return;
+  }
+
+  const dataUrl = canvas.toDataURL("image/png");
+  renderedPreviews.forEach((preview) => {
+    preview.src = dataUrl;
+  });
 }
 
 function scheduleRender() {
@@ -505,14 +532,12 @@ startButton.addEventListener("click", () => {
   setStep(2);
 });
 
-toFrameButton.addEventListener("click", () => {
-  setStep(3);
+backButton.addEventListener("click", () => {
+  setStep(state.step - 1);
 });
 
-document.querySelectorAll("[data-goto-step]").forEach((button) => {
-  button.addEventListener("click", () => {
-    setStep(Number(button.dataset.gotoStep));
-  });
+toFrameButton.addEventListener("click", () => {
+  setStep(3);
 });
 
 autoToneToggle.addEventListener("change", () => {
