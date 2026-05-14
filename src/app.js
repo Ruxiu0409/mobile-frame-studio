@@ -22,14 +22,18 @@ const frameList = document.querySelector("#frameList");
 const previewCards = document.querySelectorAll(".photo-workspace, .final-preview");
 const renderedPreviews = document.querySelectorAll(".rendered-preview");
 const autoToneToggle = document.querySelector("#autoToneToggle");
-const zoomRange = document.querySelector("#zoomRange");
-const resetButton = document.querySelector("#resetButton");
 const toFrameButton = document.querySelector("#toFrameButton");
 const shareButton = document.querySelector("#shareButton");
 const makeAnotherButton = document.querySelector("#makeAnotherButton");
 const statusMessage = document.querySelector("#statusMessage");
 
 photoInput.accept = PHOTO_ACCEPT_VALUE;
+
+const DEFAULT_TRANSFORM = {
+  scale: 1,
+  offsetX: 0,
+  offsetY: 0,
+};
 
 const state = {
   frame: FRAME_PRESETS[0],
@@ -38,18 +42,11 @@ const state = {
   photoName: "",
   step: 1,
   autoTone: true,
-  transform: {
-    scale: 1,
-    offsetX: 0,
-    offsetY: 0,
-  },
+  transform: { ...DEFAULT_TRANSFORM },
 };
 
 const frameCache = new Map();
 const framePreviewCache = new Map();
-const activePointers = new Map();
-let dragStart = null;
-let pinchStart = null;
 let renderFrame = 0;
 let heicConverterPromise = null;
 
@@ -65,8 +62,6 @@ function setControlsEnabled() {
   appShell.classList.toggle("has-photo", hasPhoto);
   toFrameButton.disabled = !hasPhoto;
   shareButton.disabled = !canExport;
-  resetButton.disabled = !hasPhoto;
-  zoomRange.disabled = !hasPhoto;
 }
 
 function syncPreviewAspect() {
@@ -97,7 +92,7 @@ function setStep(step) {
   });
 
   if (nextStep === 2 && state.photo) {
-    setStatus("已套用照片，可拖曳預覽調整位置。");
+    setStatus("已套用照片，可預覽調色效果。");
   } else if (nextStep === 2) {
     setStatus("上傳照片開始製作。");
   } else if (nextStep === 3) {
@@ -337,8 +332,7 @@ async function createFramePreview(frame) {
 
 function normalizeCurrentTransform() {
   if (!state.photo) {
-    state.transform = { scale: 1, offsetX: 0, offsetY: 0 };
-    zoomRange.value = "1";
+    state.transform = { ...DEFAULT_TRANSFORM };
     return;
   }
 
@@ -347,11 +341,10 @@ function normalizeCurrentTransform() {
     imageHeight: state.photo.height,
     canvasWidth: state.frame.width,
     canvasHeight: state.frame.height,
-    scale: state.transform.scale,
-    offsetX: state.transform.offsetX,
-    offsetY: state.transform.offsetY,
+    scale: DEFAULT_TRANSFORM.scale,
+    offsetX: DEFAULT_TRANSFORM.offsetX,
+    offsetY: DEFAULT_TRANSFORM.offsetY,
   });
-  zoomRange.value = String(state.transform.scale);
 }
 
 function drawEmptyState() {
@@ -482,11 +475,11 @@ async function handlePhotoChange(event) {
     state.photoName = file.name;
     state.frameConfirmed = false;
     framePreviewCache.clear();
-    state.transform = { scale: 1, offsetX: 0, offsetY: 0 };
+    state.transform = { ...DEFAULT_TRANSFORM };
     normalizeCurrentTransform();
     updatePhotoUi();
     renderFrameOptions();
-    setStatus("已套用照片，可拖曳預覽調整位置。");
+    setStatus("已套用照片，可預覽調色效果。");
     scheduleRender();
     setStep(2);
   } catch {
@@ -495,84 +488,6 @@ async function handlePhotoChange(event) {
       : "照片載入失敗，請換一張圖片試試。";
     setStatus(failureMessage, { persistent: true });
   }
-}
-
-function canvasPoint(event) {
-  const rect = canvas.getBoundingClientRect();
-  return {
-    x: (event.clientX - rect.left) * (state.frame.width / rect.width),
-    y: (event.clientY - rect.top) * (state.frame.height / rect.height),
-  };
-}
-
-function pointerDistance() {
-  const points = [...activePointers.values()];
-  if (points.length < 2) {
-    return 0;
-  }
-
-  return Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
-}
-
-function handlePointerDown(event) {
-  if (!state.photo) {
-    return;
-  }
-
-  canvas.classList.add("is-dragging");
-  canvas.setPointerCapture(event.pointerId);
-  activePointers.set(event.pointerId, canvasPoint(event));
-
-  if (activePointers.size === 1) {
-    dragStart = {
-      point: canvasPoint(event),
-      offsetX: state.transform.offsetX,
-      offsetY: state.transform.offsetY,
-    };
-  } else if (activePointers.size === 2) {
-    pinchStart = {
-      distance: pointerDistance(),
-      scale: state.transform.scale,
-    };
-  }
-}
-
-function handlePointerMove(event) {
-  if (!state.photo || !activePointers.has(event.pointerId)) {
-    return;
-  }
-
-  activePointers.set(event.pointerId, canvasPoint(event));
-
-  if (activePointers.size === 1 && dragStart) {
-    const point = canvasPoint(event);
-    state.transform.offsetX = dragStart.offsetX + point.x - dragStart.point.x;
-    state.transform.offsetY = dragStart.offsetY + point.y - dragStart.point.y;
-  } else if (activePointers.size >= 2 && pinchStart) {
-    const distance = pointerDistance();
-    state.transform.scale = pinchStart.scale * (distance / pinchStart.distance);
-  }
-
-  normalizeCurrentTransform();
-  scheduleRender();
-}
-
-function handlePointerEnd(event) {
-  activePointers.delete(event.pointerId);
-
-  if (activePointers.size === 0) {
-    canvas.classList.remove("is-dragging");
-    dragStart = null;
-    pinchStart = null;
-    return;
-  }
-
-  const point = [...activePointers.values()][0];
-  dragStart = {
-    point,
-    offsetX: state.transform.offsetX,
-    offsetY: state.transform.offsetY,
-  };
 }
 
 function blobFromCanvas() {
@@ -647,7 +562,7 @@ function resetCreationFlow() {
   state.photo = null;
   state.photoName = "";
   state.autoTone = true;
-  state.transform = { scale: 1, offsetX: 0, offsetY: 0 };
+  state.transform = { ...DEFAULT_TRANSFORM };
 
   photoInput.value = "";
   autoToneToggle.checked = true;
@@ -655,7 +570,6 @@ function resetCreationFlow() {
   canvas.height = state.frame.height;
   syncPreviewAspect();
   framePreviewCache.clear();
-  activePointers.clear();
   renderedPreviews.forEach((preview) => {
     preview.removeAttribute("src");
   });
@@ -693,27 +607,8 @@ autoToneToggle.addEventListener("change", () => {
   scheduleRender();
 });
 
-zoomRange.addEventListener("input", () => {
-  state.transform.scale = Number(zoomRange.value);
-  normalizeCurrentTransform();
-  framePreviewCache.clear();
-  scheduleRender();
-});
-
-resetButton.addEventListener("click", () => {
-  state.transform = { scale: 1, offsetX: 0, offsetY: 0 };
-  normalizeCurrentTransform();
-  framePreviewCache.clear();
-  scheduleRender();
-});
-
 shareButton.addEventListener("click", handleShare);
 makeAnotherButton.addEventListener("click", resetCreationFlow);
-
-canvas.addEventListener("pointerdown", handlePointerDown);
-canvas.addEventListener("pointermove", handlePointerMove);
-canvas.addEventListener("pointerup", handlePointerEnd);
-canvas.addEventListener("pointercancel", handlePointerEnd);
 
 canvas.width = state.frame.width;
 canvas.height = state.frame.height;

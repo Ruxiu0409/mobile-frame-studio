@@ -44,7 +44,7 @@
       <section class="app-screen photo-screen" data-step-panel="2" aria-labelledby="photoStepTitle">
         <div class="screen-copy">
           <h2 id="photoStepTitle">選擇照片</h2>
-          <p>先選一張 HEIC、PNG 或 JPG 照片，上傳後再開啟預覽、調色與縮放。</p>
+          <p>先選一張 HEIC、PNG 或 JPG 照片，上傳後再開啟預覽與調色。</p>
         </div>
 
         <input
@@ -96,19 +96,6 @@
             </span>
             <input id="autoToneToggle" type="checkbox" checked />
           </label>
-
-          <label class="range-row" for="zoomRange">
-            <span>照片縮放</span>
-            <input id="zoomRange" type="range" min="1" max="3" step="0.01" value="1" disabled />
-          </label>
-
-          <button id="resetButton" class="ghost-action" type="button" disabled>
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M3 12a9 9 0 1 0 3-6.7" />
-              <path d="M3 4v6h6" />
-            </svg>
-            重設位置
-          </button>
         </div>
 
         <button id="toFrameButton" class="primary-action wide-action bottom-action photo-next-action" type="button" disabled>

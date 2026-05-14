@@ -273,12 +273,6 @@ h2 {
 #previewCanvas {
   height: auto;
   aspect-ratio: var(--preview-aspect, 4 / 3);
-  cursor: grab;
-  touch-action: none;
-}
-
-#previewCanvas.is-dragging {
-  cursor: grabbing;
 }
 
 .status-message {
@@ -379,7 +373,6 @@ h2 {
 
 .primary-action,
 .secondary-action,
-.ghost-action,
 .upload-button {
   position: relative;
   display: inline-flex;
@@ -408,7 +401,6 @@ h2 {
 }
 
 .secondary-action,
-.ghost-action,
 .upload-button {
   color: var(--text);
   border: 1px solid var(--line);
@@ -416,8 +408,7 @@ h2 {
 }
 
 .wide-action,
-.upload-button,
-.ghost-action {
+.upload-button {
   width: 100%;
 }
 
@@ -431,7 +422,6 @@ h2 {
 
 .primary-action:active,
 .secondary-action:active,
-.ghost-action:active,
 .upload-button:active,
 .back-button:active {
   transform: translateY(1px);
@@ -458,8 +448,7 @@ input:disabled + label {
   background: rgba(255, 250, 240, 0.035);
 }
 
-.switch-row strong,
-.range-row span {
+.switch-row strong {
   font-size: 0.9rem;
   line-height: 1.3;
 }
@@ -476,16 +465,6 @@ input:disabled + label {
   width: 48px;
   height: 28px;
   margin: 0;
-  accent-color: var(--gold);
-}
-
-.range-row {
-  display: grid;
-  gap: 8px;
-}
-
-.range-row input {
-  width: 100%;
   accent-color: var(--gold);
 }
 
@@ -563,7 +542,6 @@ input:disabled + label {
 @media (hover: hover) {
   .primary-action:hover,
   .secondary-action:hover,
-  .ghost-action:hover,
   .upload-button:hover,
   .frame-option:hover,
   .back-button:hover {
