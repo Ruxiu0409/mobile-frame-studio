@@ -1,7 +1,7 @@
 export const FRAME_PRESETS = [
   {
     id: "shine-horizontal",
-    name: "耀序橫式相框",
+    name: "熠序橫式相框",
     src: "assets/frames/shine-horizontal.png",
     width: 2400,
     height: 1800,

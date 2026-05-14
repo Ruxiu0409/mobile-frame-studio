@@ -47,7 +47,7 @@ let pinchStart = null;
 let renderFrame = 0;
 
 const SCREEN_META = {
-  1: "耀序相框製作",
+  1: "熠序",
   2: "選擇照片",
   3: "選擇相框",
   4: "完成分享",
@@ -548,7 +548,7 @@ function downloadBlob(blob) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "耀序相框.png";
+  link.download = "熠序相框.png";
   document.body.append(link);
   link.click();
   link.remove();
@@ -570,13 +570,13 @@ async function handleShare() {
 
   try {
     const blob = await exportBlob();
-    const file = new File([blob], "耀序相框.png", { type: "image/png" });
+    const file = new File([blob], "熠序相框.png", { type: "image/png" });
 
     if (navigator.canShare?.({ files: [file] })) {
       await navigator.share({
         files: [file],
-        title: "耀序相框",
-        text: "我的耀序相框照片",
+        title: "熠序相框",
+        text: "我的熠序相框照片",
       });
       setStatus("分享流程已開啟。");
     } else {

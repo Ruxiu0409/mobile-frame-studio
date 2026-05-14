@@ -60,6 +60,16 @@ p {
   margin: 0;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 h1 {
   font-size: clamp(2.55rem, 12vw, 4.1rem);
   line-height: 0.96;
@@ -182,6 +192,23 @@ h2 {
   padding-bottom: 8px;
 }
 
+.intro-hero {
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+  text-align: center;
+}
+
+.event-logo {
+  display: block;
+  width: min(72vw, 250px);
+  max-height: min(34dvh, 330px);
+  object-fit: contain;
+  filter:
+    drop-shadow(0 22px 42px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 20px rgba(240, 199, 106, 0.2));
+}
+
 .intro-copy,
 .screen-copy {
   display: grid;
@@ -192,6 +219,13 @@ h2 {
   color: var(--gold-strong);
   font-size: 0.88rem;
   font-weight: 900;
+}
+
+.intro-title {
+  color: var(--text);
+  font-size: clamp(1.85rem, 8vw, 2.65rem);
+  font-weight: 900;
+  line-height: 1.12;
 }
 
 .intro-text,
@@ -469,6 +503,15 @@ input:disabled + label {
 
   .intro-screen {
     justify-content: flex-start;
+  }
+
+  .intro-hero {
+    gap: 12px;
+  }
+
+  .event-logo {
+    width: min(58vw, 210px);
+    max-height: 28dvh;
   }
 
   h1 {
