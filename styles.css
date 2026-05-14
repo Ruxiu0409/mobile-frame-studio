@@ -172,23 +172,9 @@ h2 {
   visibility: hidden;
 }
 
-.screen-heading {
-  min-width: 0;
-  text-align: center;
-}
-
-.screen-heading strong {
-  overflow: hidden;
-  color: var(--text);
-  font-size: 1rem;
-  font-weight: 900;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .topbar-spacer {
   display: block;
+  grid-column: 3;
   width: 42px;
   height: 42px;
 }

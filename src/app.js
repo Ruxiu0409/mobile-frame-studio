@@ -9,7 +9,6 @@ const ctx = canvas.getContext("2d", { alpha: false });
 const appShell = document.querySelector(".app-shell");
 const panels = document.querySelectorAll("[data-step-panel]");
 const backButton = document.querySelector("#backButton");
-const screenTitle = document.querySelector("#screenTitle");
 const startButton = document.querySelector("#startButton");
 const photoInput = document.querySelector("#photoInput");
 const replacePhotoButton = document.querySelector("#replacePhotoButton");
@@ -45,13 +44,6 @@ const activePointers = new Map();
 let dragStart = null;
 let pinchStart = null;
 let renderFrame = 0;
-
-const SCREEN_META = {
-  1: "熠序",
-  2: "選擇照片",
-  3: "選擇相框",
-  4: "完成分享",
-};
 
 function setStatus(message, { persistent = false } = {}) {
   statusMessage.textContent = message;
@@ -90,7 +82,6 @@ function setStep(step) {
 
   state.step = nextStep;
   appShell.dataset.step = String(nextStep);
-  screenTitle.textContent = SCREEN_META[nextStep];
   backButton.disabled = nextStep === 1;
 
   panels.forEach((panel) => {
