@@ -1,8 +1,13 @@
 import {
   FRAME_PRESETS,
+  PHOTO_ACCEPT_VALUE,
   fitRect,
+  isHeicPhotoFile,
+  isSupportedPhotoFile,
   normalizeTransform,
 } from "./frame-core.js";
+
+const HEIC_CONVERTER_URL = "assets/vendor/heic2any.min.js";
 
 const canvas = document.querySelector("#previewCanvas");
 const ctx = canvas.getContext("2d", { alpha: false });
@@ -24,6 +29,8 @@ const shareButton = document.querySelector("#shareButton");
 const makeAnotherButton = document.querySelector("#makeAnotherButton");
 const statusMessage = document.querySelector("#statusMessage");
 
+photoInput.accept = PHOTO_ACCEPT_VALUE;
+
 const state = {
   frame: FRAME_PRESETS[0],
   frameConfirmed: false,
@@ -44,6 +51,7 @@ const activePointers = new Map();
 let dragStart = null;
 let pinchStart = null;
 let renderFrame = 0;
+let heicConverterPromise = null;
 
 function setStatus(message, { persistent = false } = {}) {
   statusMessage.textContent = message;
@@ -159,7 +167,46 @@ function loadImage(src) {
   });
 }
 
-async function loadPhoto(file) {
+function loadHeicConverter() {
+  if (window.heic2any) {
+    return Promise.resolve(window.heic2any);
+  }
+
+  if (!heicConverterPromise) {
+    heicConverterPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = HEIC_CONVERTER_URL;
+      script.async = true;
+      script.onload = () => {
+        if (window.heic2any) {
+          resolve(window.heic2any);
+        } else {
+          reject(new Error("HEIC converter did not initialize"));
+        }
+      };
+      script.onerror = () => reject(new Error("HEIC converter failed to load"));
+      document.head.append(script);
+    });
+  }
+
+  return heicConverterPromise.catch((error) => {
+    heicConverterPromise = null;
+    throw error;
+  });
+}
+
+async function convertHeicToRaster(file) {
+  const heic2any = await loadHeicConverter();
+  const converted = await heic2any({
+    blob: file,
+    toType: "image/jpeg",
+    quality: 0.95,
+  });
+
+  return Array.isArray(converted) ? converted[0] : converted;
+}
+
+async function loadRasterPhoto(file) {
   const objectUrl = URL.createObjectURL(file);
 
   try {
@@ -179,6 +226,20 @@ async function loadPhoto(file) {
   } catch (error) {
     URL.revokeObjectURL(objectUrl);
     throw error;
+  }
+}
+
+async function loadPhoto(file) {
+  if (!isHeicPhotoFile(file)) {
+    return loadRasterPhoto(file);
+  }
+
+  try {
+    return await loadRasterPhoto(file);
+  } catch {
+    setStatus("HEIC 照片轉換中...", { persistent: true });
+    const rasterBlob = await convertHeicToRaster(file);
+    return loadRasterPhoto(rasterBlob);
   }
 }
 
@@ -421,12 +482,13 @@ async function handlePhotoChange(event) {
     return;
   }
 
-  if (!file.type.startsWith("image/")) {
-    setStatus("請選擇圖片檔。", { persistent: true });
+  if (!isSupportedPhotoFile(file)) {
+    setStatus("請選擇 HEIC、PNG 或 JPG 照片。", { persistent: true });
+    photoInput.value = "";
     return;
   }
 
-  setStatus("照片載入中...", { persistent: true });
+  setStatus(isHeicPhotoFile(file) ? "HEIC 照片載入中..." : "照片載入中...", { persistent: true });
 
   try {
     if (state.photo && typeof state.photo.close === "function") {
@@ -445,7 +507,10 @@ async function handlePhotoChange(event) {
     scheduleRender();
     setStep(2);
   } catch {
-    setStatus("照片載入失敗，請換一張圖片試試。", { persistent: true });
+    const failureMessage = isHeicPhotoFile(file)
+      ? "HEIC 照片轉換失敗，請換一張照片或先轉成 JPG。"
+      : "照片載入失敗，請換一張圖片試試。";
+    setStatus(failureMessage, { persistent: true });
   }
 }
 

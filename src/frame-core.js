@@ -8,6 +8,60 @@ export const FRAME_PRESETS = [
   },
 ];
 
+const ACCEPTED_PHOTO_EXTENSIONS = new Set([".heic", ".heif", ".jpg", ".jpeg", ".png"]);
+const HEIC_PHOTO_EXTENSIONS = new Set([".heic", ".heif"]);
+const ACCEPTED_PHOTO_MIME_TYPES = new Set([
+  "image/heic",
+  "image/heic-sequence",
+  "image/heif",
+  "image/heif-sequence",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+]);
+const HEIC_PHOTO_MIME_TYPES = new Set([
+  "image/heic",
+  "image/heic-sequence",
+  "image/heif",
+  "image/heif-sequence",
+]);
+
+export const PHOTO_ACCEPT_VALUE = [
+  "image/heic",
+  "image/heif",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  ".heic",
+  ".heif",
+  ".jpg",
+  ".jpeg",
+  ".png",
+].join(",");
+
+export function fileExtension(fileName = "") {
+  const normalizedName = String(fileName).trim().toLowerCase();
+  const queryStart = normalizedName.search(/[?#]/);
+  const cleanName = queryStart === -1 ? normalizedName : normalizedName.slice(0, queryStart);
+  const dotIndex = cleanName.lastIndexOf(".");
+
+  return dotIndex === -1 ? "" : cleanName.slice(dotIndex);
+}
+
+export function isHeicPhotoFile(file) {
+  const mimeType = String(file?.type ?? "").trim().toLowerCase();
+  const extension = fileExtension(file?.name);
+
+  return HEIC_PHOTO_MIME_TYPES.has(mimeType) || HEIC_PHOTO_EXTENSIONS.has(extension);
+}
+
+export function isSupportedPhotoFile(file) {
+  const mimeType = String(file?.type ?? "").trim().toLowerCase();
+  const extension = fileExtension(file?.name);
+
+  return ACCEPTED_PHOTO_MIME_TYPES.has(mimeType) || ACCEPTED_PHOTO_EXTENSIONS.has(extension);
+}
+
 export function clamp(value, min, max) {
   const clamped = Math.min(Math.max(value, min), max);
   return Object.is(clamped, -0) ? 0 : clamped;
