@@ -1,6 +1,6 @@
 import {
   FRAME_PRESETS,
-  coverRect,
+  fitRect,
   normalizeTransform,
 } from "./frame-core.js";
 
@@ -220,11 +220,7 @@ function normalizeCurrentTransform() {
 }
 
 function drawEmptyState() {
-  const gradient = ctx.createLinearGradient(0, 0, state.frame.width, state.frame.height);
-  gradient.addColorStop(0, "#fffaf0");
-  gradient.addColorStop(1, "#f0e3ca");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, state.frame.width, state.frame.height);
+  drawPaperBackground();
 
   ctx.fillStyle = "rgba(75, 54, 18, 0.72)";
   ctx.textAlign = "center";
@@ -233,8 +229,18 @@ function drawEmptyState() {
   ctx.fillText("上傳照片開始製作", state.frame.width / 2, state.frame.height / 2);
 }
 
+function drawPaperBackground() {
+  const gradient = ctx.createLinearGradient(0, 0, state.frame.width, state.frame.height);
+  gradient.addColorStop(0, "#fffaf0");
+  gradient.addColorStop(1, "#f0e3ca");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, state.frame.width, state.frame.height);
+}
+
 function drawPhoto() {
-  const rect = coverRect(
+  drawPaperBackground();
+
+  const rect = fitRect(
     state.photo.width,
     state.photo.height,
     state.frame.width,

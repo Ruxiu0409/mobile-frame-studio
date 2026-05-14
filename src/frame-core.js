@@ -9,7 +9,8 @@ export const FRAME_PRESETS = [
 ];
 
 export function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
+  const clamped = Math.min(Math.max(value, min), max);
+  return Object.is(clamped, -0) ? 0 : clamped;
 }
 
 export function fitScaleForImage(imageWidth, imageHeight, canvasWidth, canvasHeight) {
@@ -17,10 +18,10 @@ export function fitScaleForImage(imageWidth, imageHeight, canvasWidth, canvasHei
     return 1;
   }
 
-  return Math.max(canvasWidth / imageWidth, canvasHeight / imageHeight);
+  return Math.min(canvasWidth / imageWidth, canvasHeight / imageHeight);
 }
 
-export function coverRect(
+export function fitRect(
   imageWidth,
   imageHeight,
   canvasWidth,
@@ -52,7 +53,7 @@ export function normalizeTransform({
   offsetY,
 }) {
   const nextScale = clamp(scale, 1, 3);
-  const rect = coverRect(imageWidth, imageHeight, canvasWidth, canvasHeight, nextScale, 0, 0);
+  const rect = fitRect(imageWidth, imageHeight, canvasWidth, canvasHeight, nextScale, 0, 0);
   const maxOffsetX = Math.max(0, (rect.width - canvasWidth) / 2);
   const maxOffsetY = Math.max(0, (rect.height - canvasHeight) / 2);
 
