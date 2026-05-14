@@ -1,10 +1,24 @@
 export const FRAME_PRESETS = [
   {
-    id: "shine-horizontal",
-    name: "熠序橫式相框",
-    src: "assets/frames/shine-horizontal.png",
-    width: 2400,
-    height: 1800,
+    id: "yixu-horizontal",
+    name: "熠序橫式",
+    src: "assets/frames/frame-horizontal-0.png",
+    width: 3848,
+    height: 2886,
+  },
+  {
+    id: "yixu-vertical-logo-bottom",
+    name: "熠序直式 1",
+    src: "assets/frames/frame-vertical-1.png",
+    width: 1800,
+    height: 3200,
+  },
+  {
+    id: "yixu-vertical-wordmark-bottom",
+    name: "熠序直式 2",
+    src: "assets/frames/frame-vertical-2.png",
+    width: 1800,
+    height: 3200,
   },
 ];
 

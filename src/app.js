@@ -243,30 +243,13 @@ async function loadPhoto(file) {
   }
 }
 
-function createTransparentFrame(image, width, height) {
+function createFrameOverlay(image, width, height) {
   const overlay = document.createElement("canvas");
   overlay.width = width;
   overlay.height = height;
 
   const overlayCtx = overlay.getContext("2d");
   overlayCtx.drawImage(image, 0, 0, width, height);
-
-  const imageData = overlayCtx.getImageData(0, 0, width, height);
-  const pixels = imageData.data;
-
-  for (let index = 0; index < pixels.length; index += 4) {
-    const red = pixels[index];
-    const green = pixels[index + 1];
-    const blue = pixels[index + 2];
-    const alpha = pixels[index + 3];
-    const isPaperWhite = red > 244 && green > 241 && blue > 235 && alpha > 0;
-
-    if (isPaperWhite) {
-      pixels[index + 3] = 0;
-    }
-  }
-
-  overlayCtx.putImageData(imageData, 0, 0);
   return overlay;
 }
 
@@ -275,7 +258,7 @@ async function getFrameAsset(frame) {
     const image = await loadImage(frame.src);
     frameCache.set(frame.id, {
       image,
-      overlay: createTransparentFrame(image, frame.width, frame.height),
+      overlay: createFrameOverlay(image, frame.width, frame.height),
     });
   }
 

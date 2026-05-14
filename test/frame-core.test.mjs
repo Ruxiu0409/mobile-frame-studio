@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   FRAME_PRESETS,
@@ -13,11 +14,39 @@ import {
   normalizeTransform,
 } from "../src/frame-core.js";
 
-test("frame presets keep the first mobile share frame available", () => {
-  assert.equal(FRAME_PRESETS.length, 1);
-  assert.equal(FRAME_PRESETS[0].id, "shine-horizontal");
-  assert.equal(FRAME_PRESETS[0].width, 2400);
-  assert.equal(FRAME_PRESETS[0].height, 1800);
+function pngSize(filePath) {
+  const buffer = readFileSync(filePath);
+
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+  };
+}
+
+test("frame presets expose the three Yixu ceremony frames", () => {
+  assert.equal(FRAME_PRESETS.length, 3);
+  assert.deepEqual(
+    FRAME_PRESETS.map(({ id }) => id),
+    ["yixu-horizontal", "yixu-vertical-logo-bottom", "yixu-vertical-wordmark-bottom"],
+  );
+  assert.deepEqual(
+    FRAME_PRESETS.map(({ width, height }) => [width, height]),
+    [
+      [3848, 2886],
+      [1800, 3200],
+      [1800, 3200],
+    ],
+  );
+});
+
+test("frame preset assets exist and match their configured dimensions", () => {
+  FRAME_PRESETS.forEach((frame) => {
+    const assetUrl = new URL(`../${frame.src}`, import.meta.url);
+    assert.deepEqual(pngSize(assetUrl), {
+      width: frame.width,
+      height: frame.height,
+    });
+  });
 });
 
 test("photo picker accepts HEIC, PNG, and JPG inputs", () => {
