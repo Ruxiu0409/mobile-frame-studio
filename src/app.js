@@ -633,9 +633,12 @@ replacePhotoButton.addEventListener("click", () => {
   photoInput.click();
 });
 
-startButton.addEventListener("click", () => {
+function startCreation() {
   setStep(2);
-});
+}
+
+startButton.addEventListener("click", startCreation);
+startButton.addEventListener("pointerup", startCreation);
 
 backButton.addEventListener("click", () => {
   setStep(state.step - 1);

@@ -77,14 +77,14 @@ body {
   }
 }
 
-@keyframes button-sheen {
-  0% {
-    transform: translateX(-120%) skewX(-18deg);
+@keyframes primary-glow {
+  0%,
+  100% {
+    filter: brightness(1);
   }
 
-  42%,
-  100% {
-    transform: translateX(210%) skewX(-18deg);
+  45% {
+    filter: brightness(1.06);
   }
 }
 
@@ -415,24 +415,10 @@ h2 {
     opacity 150ms ease;
 }
 
-.primary-action::after {
-  position: absolute;
-  inset: -40% auto -40% 0;
-  width: 34%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.26) 50%,
-    transparent 100%
-  );
-  content: "";
-  pointer-events: none;
-  animation: button-sheen 4.8s ease-in-out infinite;
-}
-
 .primary-action {
   color: #1b1204;
   background: linear-gradient(180deg, #f5cf72 0%, #ca8e21 100%);
+  animation: primary-glow 4.8s ease-in-out infinite;
 }
 
 .secondary-action,
