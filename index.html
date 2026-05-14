@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="手機相框製作工具，上傳照片後套用耀序相框、自動調色並分享。"
+    />
+    <title>耀序相框製作</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="site-header">
+        <div>
+          <p class="brand-mark">iOS Club</p>
+          <h1>耀序相框製作</h1>
+        </div>
+        <span class="event-date">05.16</span>
+      </header>
+
+      <section class="studio" aria-label="相框製作工具">
+        <section class="preview-panel" aria-label="照片預覽">
+          <div class="canvas-frame">
+            <canvas id="previewCanvas" width="2400" height="1800" aria-label="相框合成預覽"></canvas>
+          </div>
+          <p id="statusMessage" class="status-message" role="status">上傳照片開始製作。</p>
+          <div class="action-bar" aria-label="輸出動作">
+            <button id="shareButton" class="primary-action" type="button" disabled>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M12 3v12" />
+                <path d="m7 8 5-5 5 5" />
+                <path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" />
+              </svg>
+              一鍵分享
+            </button>
+            <button id="downloadButton" class="secondary-action" type="button" disabled>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M12 3v12" />
+                <path d="m7 10 5 5 5-5" />
+                <path d="M5 21h14" />
+              </svg>
+              下載
+            </button>
+          </div>
+        </section>
+
+        <aside class="control-panel" aria-label="製作設定">
+          <section class="tool-section">
+            <h2>照片</h2>
+            <input id="photoInput" type="file" accept="image/*" />
+            <label class="upload-button" for="photoInput">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M4 17.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5" />
+                <path d="M12 3v12" />
+                <path d="m7 8 5-5 5 5" />
+              </svg>
+              選擇照片
+            </label>
+            <p id="fileName" class="file-name">尚未選擇照片</p>
+          </section>
+
+          <section class="tool-section">
+            <h2>相框</h2>
+            <div id="frameList" class="frame-list" role="listbox" aria-label="可用相框"></div>
+          </section>
+
+          <section class="tool-section">
+            <h2>調整</h2>
+            <label class="switch-row">
+              <span>
+                <strong>自動調色</strong>
+                <small>亮度、對比與色彩會在輸出時一起套用</small>
+              </span>
+              <input id="autoToneToggle" type="checkbox" checked />
+            </label>
+
+            <label class="range-row" for="zoomRange">
+              <span>照片縮放</span>
+              <input id="zoomRange" type="range" min="1" max="3" step="0.01" value="1" disabled />
+            </label>
+
+            <button id="resetButton" class="ghost-action" type="button" disabled>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M3 12a9 9 0 1 0 3-6.7" />
+                <path d="M3 4v6h6" />
+              </svg>
+              重設位置
+            </button>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>

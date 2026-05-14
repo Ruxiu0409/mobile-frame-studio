@@ -1,0 +1,10 @@
+{
+  "name": "mobile-frame-studio",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "serve": "python3 -m http.server 5173"
+  }
+}
