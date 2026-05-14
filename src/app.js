@@ -22,6 +22,7 @@ const zoomRange = document.querySelector("#zoomRange");
 const resetButton = document.querySelector("#resetButton");
 const toFrameButton = document.querySelector("#toFrameButton");
 const shareButton = document.querySelector("#shareButton");
+const makeAnotherButton = document.querySelector("#makeAnotherButton");
 const statusMessage = document.querySelector("#statusMessage");
 
 const state = {
@@ -49,7 +50,7 @@ const SCREEN_META = {
   1: "耀序相框製作",
   2: "選擇照片",
   3: "選擇相框",
-  4: "下載與分享",
+  4: "完成分享",
 };
 
 function setStatus(message) {
@@ -98,10 +99,10 @@ function setStep(step) {
   } else if (nextStep === 2) {
     setStatus("上傳照片開始製作。");
   } else if (nextStep === 3) {
-    setStatus("點選相框後會進入下載與分享。");
+    setStatus("點選相框後會進入完成分享。");
     renderFrameOptions();
   } else if (nextStep === 4) {
-    setStatus("相框已套用，可以下載或分享。");
+    setStatus("相框已套用，可以分享。");
   }
 
   setControlsEnabled();
@@ -593,6 +594,35 @@ async function handleShare() {
   }
 }
 
+function resetCreationFlow() {
+  if (state.photo && typeof state.photo.close === "function") {
+    state.photo.close();
+  }
+
+  state.frame = FRAME_PRESETS[0];
+  state.frameConfirmed = false;
+  state.photo = null;
+  state.photoName = "";
+  state.autoTone = true;
+  state.transform = { scale: 1, offsetX: 0, offsetY: 0 };
+
+  photoInput.value = "";
+  autoToneToggle.checked = true;
+  canvas.width = state.frame.width;
+  canvas.height = state.frame.height;
+  framePreviewCache.clear();
+  activePointers.clear();
+  renderedPreviews.forEach((preview) => {
+    preview.removeAttribute("src");
+  });
+
+  normalizeCurrentTransform();
+  renderFrameOptions();
+  updatePhotoUi();
+  setStatus("上傳照片開始製作。");
+  setStep(1);
+}
+
 photoInput.addEventListener("change", handlePhotoChange);
 
 startButton.addEventListener("click", () => {
@@ -628,6 +658,7 @@ resetButton.addEventListener("click", () => {
 });
 
 shareButton.addEventListener("click", handleShare);
+makeAnotherButton.addEventListener("click", resetCreationFlow);
 
 canvas.addEventListener("pointerdown", handlePointerDown);
 canvas.addEventListener("pointermove", handlePointerMove);
