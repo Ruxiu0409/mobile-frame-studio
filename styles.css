@@ -239,8 +239,9 @@ h2 {
 
 .hero-frame,
 .preview-card {
+  flex: 0 0 auto;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: var(--preview-aspect, 4 / 3);
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -253,15 +254,17 @@ h2 {
 #previewCanvas {
   display: block;
   width: 100%;
-  height: 100%;
 }
 
 .hero-frame img,
 .rendered-preview {
+  height: 100%;
   object-fit: cover;
 }
 
 #previewCanvas {
+  height: auto;
+  aspect-ratio: var(--preview-aspect, 4 / 3);
   cursor: grab;
   touch-action: none;
 }

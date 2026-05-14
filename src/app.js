@@ -17,6 +17,7 @@ const photoInput = document.querySelector("#photoInput");
 const replacePhotoButton = document.querySelector("#replacePhotoButton");
 const fileName = document.querySelector("#fileName");
 const frameList = document.querySelector("#frameList");
+const previewCards = document.querySelectorAll(".photo-workspace, .final-preview");
 const renderedPreviews = document.querySelectorAll(".rendered-preview");
 const autoToneToggle = document.querySelector("#autoToneToggle");
 const zoomRange = document.querySelector("#zoomRange");
@@ -68,6 +69,14 @@ function setControlsEnabled() {
   shareButton.disabled = !canExport;
   resetButton.disabled = !hasPhoto;
   zoomRange.disabled = !hasPhoto;
+}
+
+function syncPreviewAspect() {
+  const aspect = `${state.frame.width} / ${state.frame.height}`;
+  previewCards.forEach((card) => {
+    card.style.setProperty("--preview-aspect", aspect);
+  });
+  canvas.style.setProperty("--preview-aspect", aspect);
 }
 
 function setStep(step) {
@@ -139,6 +148,7 @@ function renderFrameOptions() {
       state.frameConfirmed = true;
       canvas.width = frame.width;
       canvas.height = frame.height;
+      syncPreviewAspect();
       normalizeCurrentTransform();
       renderFrameOptions();
       scheduleRender();
@@ -613,6 +623,7 @@ function resetCreationFlow() {
   autoToneToggle.checked = true;
   canvas.width = state.frame.width;
   canvas.height = state.frame.height;
+  syncPreviewAspect();
   framePreviewCache.clear();
   activePointers.clear();
   renderedPreviews.forEach((preview) => {
@@ -673,6 +684,7 @@ canvas.addEventListener("pointercancel", handlePointerEnd);
 
 canvas.width = state.frame.width;
 canvas.height = state.frame.height;
+syncPreviewAspect();
 renderFrameOptions();
 updatePhotoUi();
 setStep(1);
