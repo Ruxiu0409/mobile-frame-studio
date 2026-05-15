@@ -13,6 +13,8 @@ const HEIC_CONVERTER_URL = "assets/vendor/heic2any.min.js";
 
 const canvas = document.querySelector("#previewCanvas");
 const ctx = canvas.getContext("2d", { alpha: false });
+const finalCanvas = document.querySelector("#finalPreviewCanvas");
+const finalCtx = finalCanvas.getContext("2d", { alpha: false });
 const appShell = document.querySelector(".app-shell");
 const panels = document.querySelectorAll("[data-step-panel]");
 const backButton = document.querySelector("#backButton");
@@ -22,9 +24,8 @@ const replacePhotoButton = document.querySelector("#replacePhotoButton");
 const fileName = document.querySelector("#fileName");
 const frameList = document.querySelector("#frameList");
 const previewCards = document.querySelectorAll(".photo-workspace, .final-preview");
-const renderedPreviews = document.querySelectorAll(".rendered-preview");
 const finalPreview = document.querySelector(".final-preview");
-const finalRenderedPreview = finalPreview?.querySelector(".rendered-preview");
+const finalRenderedPreview = finalCanvas;
 const autoToneToggle = document.querySelector("#autoToneToggle");
 const toFrameButton = document.querySelector("#toFrameButton");
 const shareButton = document.querySelector("#shareButton");
@@ -38,6 +39,7 @@ const DEFAULT_TRANSFORM = {
   offsetX: 0,
   offsetY: 0,
 };
+const FINAL_PREVIEW_MAX_WIDTH = 1400;
 
 const state = {
   frame: FRAME_PRESETS[0],
@@ -80,6 +82,16 @@ function syncPreviewAspect() {
     card.style.setProperty("--preview-aspect", aspect);
   });
   canvas.style.setProperty("--preview-aspect", aspect);
+  finalCanvas.style.setProperty("--preview-aspect", aspect);
+}
+
+function syncCanvasSize() {
+  canvas.width = state.frame.width;
+  canvas.height = state.frame.height;
+
+  const previewWidth = Math.min(state.frame.width, FINAL_PREVIEW_MAX_WIDTH);
+  finalCanvas.width = previewWidth;
+  finalCanvas.height = Math.round(previewWidth * (state.frame.height / state.frame.width));
 }
 
 function setStep(step) {
@@ -141,8 +153,7 @@ function renderFrameOptions() {
     option.addEventListener("click", () => {
       state.frame = frame;
       state.frameConfirmed = true;
-      canvas.width = frame.width;
-      canvas.height = frame.height;
+      syncCanvasSize();
       syncPreviewAspect();
       normalizeCurrentTransform();
       renderFrameOptions();
@@ -448,6 +459,7 @@ function resetPointerGestureStart() {
 function applyGestureTransform(nextTransform) {
   state.transform = nextTransform;
   framePreviewCache.clear();
+  drawFinalPreviewImmediately();
   scheduleRender();
 }
 
@@ -669,14 +681,14 @@ function resetFinalPreviewGesture() {
   finalPreview?.classList.remove("is-adjusting");
 }
 
-function drawEmptyState() {
-  drawPaperBackground(ctx, state.frame.width, state.frame.height);
+function drawEmptyState(targetCtx) {
+  drawPaperBackground(targetCtx, state.frame.width, state.frame.height);
 
-  ctx.fillStyle = "rgba(75, 54, 18, 0.72)";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = "700 86px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
-  ctx.fillText("上傳照片開始製作", state.frame.width / 2, state.frame.height / 2);
+  targetCtx.fillStyle = "rgba(75, 54, 18, 0.72)";
+  targetCtx.textAlign = "center";
+  targetCtx.textBaseline = "middle";
+  targetCtx.font = "700 86px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  targetCtx.fillText("上傳照片開始製作", state.frame.width / 2, state.frame.height / 2);
 }
 
 function drawPaperBackground(targetCtx, width, height) {
@@ -687,8 +699,8 @@ function drawPaperBackground(targetCtx, width, height) {
   targetCtx.fillRect(0, 0, width, height);
 }
 
-function drawPhoto() {
-  drawPaperBackground(ctx, state.frame.width, state.frame.height);
+function drawPhoto(targetCtx) {
+  drawPaperBackground(targetCtx, state.frame.width, state.frame.height);
 
   const rect = fitRect(
     state.photo.width,
@@ -700,13 +712,13 @@ function drawPhoto() {
     state.transform.offsetY,
   );
 
-  ctx.save();
-  ctx.filter = state.autoTone ? "brightness(1.035) contrast(1.08) saturate(1.16)" : "none";
-  ctx.drawImage(state.photo, rect.x, rect.y, rect.width, rect.height);
-  ctx.restore();
+  targetCtx.save();
+  targetCtx.filter = state.autoTone ? "brightness(1.035) contrast(1.08) saturate(1.16)" : "none";
+  targetCtx.drawImage(state.photo, rect.x, rect.y, rect.width, rect.height);
+  targetCtx.restore();
 
   if (state.autoTone) {
-    drawToneVignette(ctx, state.frame.width, state.frame.height);
+    drawToneVignette(targetCtx, state.frame.width, state.frame.height);
   }
 }
 
@@ -733,30 +745,39 @@ async function render() {
     return;
   }
 
-  ctx.clearRect(0, 0, state.frame.width, state.frame.height);
+  drawComposite(ctx, frameAsset);
+  drawComposite(finalCtx, frameAsset);
+}
+
+function drawComposite(targetCtx, frameAsset) {
+  const scaleX = targetCtx.canvas.width / state.frame.width;
+  const scaleY = targetCtx.canvas.height / state.frame.height;
+
+  targetCtx.clearRect(0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
+  targetCtx.save();
+  targetCtx.scale(scaleX, scaleY);
 
   if (state.photo) {
-    drawPhoto();
+    drawPhoto(targetCtx);
   } else {
-    drawEmptyState();
+    drawEmptyState(targetCtx);
   }
 
   if (state.step >= 3) {
-    ctx.drawImage(frameAsset.overlay, 0, 0, state.frame.width, state.frame.height);
+    targetCtx.drawImage(frameAsset.overlay, 0, 0, state.frame.width, state.frame.height);
   }
 
-  syncRenderedPreviews();
+  targetCtx.restore();
 }
 
-function syncRenderedPreviews() {
-  if (state.step < 3) {
+function drawFinalPreviewImmediately() {
+  const frameAsset = frameCache.get(state.frame.id);
+
+  if (!frameAsset) {
     return;
   }
 
-  const dataUrl = canvas.toDataURL("image/png");
-  renderedPreviews.forEach((preview) => {
-    preview.src = dataUrl;
-  });
+  drawComposite(finalCtx, frameAsset);
 }
 
 function scheduleRender() {
@@ -902,13 +923,9 @@ function resetCreationFlow() {
   resetFinalPreviewGesture();
   photoInput.value = "";
   autoToneToggle.checked = true;
-  canvas.width = state.frame.width;
-  canvas.height = state.frame.height;
+  syncCanvasSize();
   syncPreviewAspect();
   framePreviewCache.clear();
-  renderedPreviews.forEach((preview) => {
-    preview.removeAttribute("src");
-  });
 
   normalizeCurrentTransform();
   renderFrameOptions();
@@ -954,8 +971,7 @@ finalPreview?.addEventListener("touchcancel", handleFinalPreviewTouchEnd);
 shareButton.addEventListener("click", handleShare);
 makeAnotherButton.addEventListener("click", resetCreationFlow);
 
-canvas.width = state.frame.width;
-canvas.height = state.frame.height;
+syncCanvasSize();
 syncPreviewAspect();
 renderFrameOptions();
 updatePhotoUi();
