@@ -2,6 +2,7 @@ import {
   FRAME_PRESETS,
   PHOTO_ACCEPT_VALUE,
   fitRect,
+  frameOrientation,
   isHeicPhotoFile,
   isSupportedPhotoFile,
   normalizeTransform,
@@ -118,6 +119,7 @@ function renderFrameOptions() {
     const option = document.createElement("button");
     option.type = "button";
     option.className = "frame-option";
+    option.dataset.orientation = frameOrientation(frame);
     option.setAttribute("role", "option");
     option.setAttribute("aria-selected", String(frame.id === state.frame.id));
     option.style.setProperty("--preview-aspect", `${frame.width} / ${frame.height}`);

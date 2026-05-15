@@ -494,7 +494,7 @@ input:disabled + label {
     transform 160ms ease;
 }
 
-.frame-option:only-child {
+.frame-option[data-orientation="landscape"] {
   grid-column: 1 / -1;
 }
 

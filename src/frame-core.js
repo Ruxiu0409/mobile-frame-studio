@@ -76,6 +76,10 @@ export function isSupportedPhotoFile(file) {
   return ACCEPTED_PHOTO_MIME_TYPES.has(mimeType) || ACCEPTED_PHOTO_EXTENSIONS.has(extension);
 }
 
+export function frameOrientation(frame) {
+  return frame.width > frame.height ? "landscape" : "portrait";
+}
+
 export function clamp(value, min, max) {
   const clamped = Math.min(Math.max(value, min), max);
   return Object.is(clamped, -0) ? 0 : clamped;

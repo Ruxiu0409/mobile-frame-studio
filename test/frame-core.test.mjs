@@ -9,6 +9,7 @@ import {
   fileExtension,
   fitRect,
   fitScaleForImage,
+  frameOrientation,
   isHeicPhotoFile,
   isSupportedPhotoFile,
   normalizeTransform,
@@ -47,6 +48,13 @@ test("frame preset assets exist and match their configured dimensions", () => {
       height: frame.height,
     });
   });
+});
+
+test("frame orientation supports mixed gallery rows", () => {
+  assert.deepEqual(
+    FRAME_PRESETS.map((frame) => frameOrientation(frame)),
+    ["landscape", "portrait", "portrait"],
+  );
 });
 
 test("photo picker accepts HEIC, PNG, and JPG inputs", () => {
