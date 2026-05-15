@@ -120,10 +120,6 @@ function setStep(step) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function createIconText(frame) {
-  return `${frame.width} x ${frame.height} PNG`;
-}
-
 function renderFrameOptions() {
   frameList.innerHTML = "";
 
@@ -139,7 +135,6 @@ function renderFrameOptions() {
       <img class="frame-option-preview" src="${frame.src}" alt="" loading="lazy" />
       <span class="frame-option-meta">
         <strong>${frame.name}</strong>
-        <small>${createIconText(frame)}</small>
       </span>
     `;
     option.addEventListener("click", () => {

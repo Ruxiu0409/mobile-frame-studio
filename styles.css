@@ -518,14 +518,13 @@ input:disabled + label {
   min-width: 0;
   padding: 7px;
   color: var(--text);
-  border: 1px solid rgba(255, 250, 240, 0.12);
+  border: 1px solid transparent;
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.045);
-  text-align: left;
+  background: transparent;
+  text-align: center;
   break-inside: avoid;
   transition:
     border-color 160ms ease,
-    background 160ms ease,
     transform 160ms ease;
 }
 
@@ -535,7 +534,6 @@ input:disabled + label {
 
 .frame-option[aria-selected="true"] {
   border-color: var(--gold-strong);
-  background: rgba(214, 164, 61, 0.14);
 }
 
 .frame-option-preview {
@@ -549,8 +547,8 @@ input:disabled + label {
 
 .frame-option-meta {
   display: grid;
-  gap: 2px;
-  padding: 0 2px 2px;
+  justify-items: center;
+  padding: 0 2px 1px;
 }
 
 .frame-option strong {
@@ -558,15 +556,9 @@ input:disabled + label {
   overflow: hidden;
   font-size: 0.84rem;
   line-height: 1.2;
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.frame-option small {
-  display: block;
-  color: var(--muted);
-  font-size: 0.68rem;
-  line-height: 1.35;
 }
 
 .action-stack {
