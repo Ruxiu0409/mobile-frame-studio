@@ -244,8 +244,7 @@ h2 {
 }
 
 .intro-text,
-.status-message,
-.file-name {
+.status-message {
   color: var(--muted);
   font-size: 0.92rem;
   line-height: 1.55;
@@ -470,10 +469,6 @@ button:disabled,
 input:disabled + label {
   cursor: not-allowed;
   opacity: 0.45;
-}
-
-.file-name {
-  overflow-wrap: anywhere;
 }
 
 .switch-row {

@@ -21,7 +21,6 @@ const backButton = document.querySelector("#backButton");
 const startButton = document.querySelector("#startButton");
 const photoInput = document.querySelector("#photoInput");
 const replacePhotoButton = document.querySelector("#replacePhotoButton");
-const fileName = document.querySelector("#fileName");
 const frameList = document.querySelector("#frameList");
 const previewCards = document.querySelectorAll(".photo-workspace, .final-preview");
 const finalPreview = document.querySelector(".final-preview");
@@ -803,7 +802,6 @@ function scheduleRender() {
 
 function updatePhotoUi() {
   const hasPhoto = Boolean(state.photo);
-  fileName.textContent = hasPhoto ? state.photoName : "尚未選擇照片";
   setControlsEnabled();
 }
 
