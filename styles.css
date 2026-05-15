@@ -194,6 +194,10 @@ h2 {
   animation: screen-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.finish-screen.is-active {
+  overflow: hidden;
+}
+
 .intro-screen {
   justify-content: center;
   padding-bottom: 8px;
@@ -257,6 +261,18 @@ h2 {
   box-shadow: var(--shadow);
 }
 
+.finish-screen .final-preview {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  aspect-ratio: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .hero-frame img,
 .rendered-preview,
 #previewCanvas {
@@ -268,6 +284,18 @@ h2 {
 .rendered-preview {
   height: 100%;
   object-fit: cover;
+}
+
+.finish-screen .rendered-preview {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  box-shadow: var(--shadow);
 }
 
 #previewCanvas {
@@ -537,6 +565,12 @@ input:disabled + label {
 .action-stack {
   display: grid;
   gap: 10px;
+}
+
+.finish-screen .bottom-action {
+  position: static;
+  margin-top: 0;
+  box-shadow: none;
 }
 
 @media (hover: hover) {
