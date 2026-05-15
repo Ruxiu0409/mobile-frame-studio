@@ -476,14 +476,14 @@ async function handlePhotoChange(event) {
     state.photo = await loadPhoto(file);
     state.photoName = file.name;
     state.frameConfirmed = false;
+    state.autoTone = true;
+    autoToneToggle.checked = true;
     framePreviewCache.clear();
     state.transform = { ...DEFAULT_TRANSFORM };
     normalizeCurrentTransform();
     updatePhotoUi();
-    renderFrameOptions();
-    setStatus("已套用照片，可預覽調色效果。");
-    scheduleRender();
-    setStep(2);
+    setStatus("已套用照片，正在前往選相框。");
+    setStep(3);
   } catch {
     const failureMessage = isHeicPhotoFile(file)
       ? "HEIC 照片轉換失敗，請換一張照片或先轉成 JPG。"
