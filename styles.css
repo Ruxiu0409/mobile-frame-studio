@@ -167,7 +167,8 @@ h2 {
   background: rgba(255, 250, 240, 0.045);
 }
 
-.app-shell[data-step="1"] .back-button {
+.app-shell[data-step="1"] .back-button,
+.app-shell[data-step="2"] .back-button {
   pointer-events: none;
   visibility: hidden;
 }
