@@ -221,8 +221,7 @@ h2 {
     drop-shadow(0 0 20px rgba(240, 199, 106, 0.2));
 }
 
-.intro-copy,
-.screen-copy {
+.intro-copy {
   display: grid;
   gap: 10px;
 }
@@ -241,7 +240,6 @@ h2 {
 }
 
 .intro-text,
-.screen-copy p,
 .status-message,
 .file-name {
   color: var(--muted);
