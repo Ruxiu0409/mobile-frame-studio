@@ -336,6 +336,33 @@ h2 {
   justify-content: center;
 }
 
+.app-shell.has-photo[data-step="2"] .photo-screen {
+  overflow: hidden;
+}
+
+.app-shell.has-photo[data-step="2"] .photo-workspace {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  aspect-ratio: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-shell.has-photo[data-step="2"] #previewCanvas {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
 .photo-empty-card {
   display: grid;
   gap: 13px;
