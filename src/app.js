@@ -306,7 +306,6 @@ async function createFramePreview(frame) {
   previewCanvas.height = previewHeight;
 
   const previewCtx = previewCanvas.getContext("2d");
-  drawPaperBackground(previewCtx, previewWidth, previewHeight);
 
   if (state.photo) {
     const transform = normalizeTransform({

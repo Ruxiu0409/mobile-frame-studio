@@ -549,7 +549,7 @@ input:disabled + label {
   min-height: 0;
   object-fit: contain;
   border-radius: 6px;
-  background: var(--white);
+  background: transparent;
 }
 
 .frame-option-meta {
