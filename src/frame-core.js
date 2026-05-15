@@ -126,8 +126,8 @@ export function normalizeTransform({
 }) {
   const nextScale = clamp(scale, 1, 3);
   const rect = fitRect(imageWidth, imageHeight, canvasWidth, canvasHeight, nextScale, 0, 0);
-  const maxOffsetX = Math.max(0, (rect.width - canvasWidth) / 2);
-  const maxOffsetY = Math.max(0, (rect.height - canvasHeight) / 2);
+  const maxOffsetX = Math.abs(rect.width - canvasWidth) / 2;
+  const maxOffsetY = Math.abs(rect.height - canvasHeight) / 2;
 
   return {
     scale: nextScale,

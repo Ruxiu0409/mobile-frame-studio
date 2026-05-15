@@ -116,7 +116,22 @@ test("normalizeTransform clamps scale and offsets", () => {
   });
 
   assert.equal(transform.scale, 1);
-  assert.equal(transform.offsetX, 0);
+  assert.equal(transform.offsetX, 600);
+  assert.equal(transform.offsetY, 0);
+});
+
+test("normalizeTransform lets contained photos move across available blank space", () => {
+  const transform = normalizeTransform({
+    imageWidth: 1200,
+    imageHeight: 1800,
+    canvasWidth: 2400,
+    canvasHeight: 1800,
+    scale: 1,
+    offsetX: -320,
+    offsetY: 180,
+  });
+
+  assert.equal(transform.offsetX, -320);
   assert.equal(transform.offsetY, 0);
 });
 

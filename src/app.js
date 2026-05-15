@@ -58,6 +58,7 @@ let renderPending = false;
 let heicConverterPromise = null;
 let dragStart = null;
 let pinchStart = null;
+let touchStart = null;
 
 function setStatus(message, { persistent = false } = {}) {
   statusMessage.textContent = message;
@@ -438,6 +439,12 @@ function resetGestureStart() {
   }
 }
 
+function resetPointerGestureStart() {
+  activePointers.clear();
+  dragStart = null;
+  pinchStart = null;
+}
+
 function applyGestureTransform(nextTransform) {
   state.transform = nextTransform;
   framePreviewCache.clear();
@@ -458,6 +465,10 @@ function transformFromGesture({ startTransform, scaleDelta = 1, offsetDeltaX = 0
 }
 
 function handleFinalPreviewPointerDown(event) {
+  if (touchStart) {
+    return;
+  }
+
   if (state.step !== 4 || !state.photo || !state.frameConfirmed) {
     return;
   }
@@ -469,13 +480,17 @@ function handleFinalPreviewPointerDown(event) {
   }
 
   event.preventDefault();
-  finalPreview.setPointerCapture(event.pointerId);
+  finalPreview.setPointerCapture?.(event.pointerId);
   activePointers.set(event.pointerId, point);
   finalPreview.classList.add("is-adjusting");
   resetGestureStart();
 }
 
 function handleFinalPreviewPointerMove(event) {
+  if (touchStart) {
+    return;
+  }
+
   if (!activePointers.has(event.pointerId) || !state.photo) {
     return;
   }
@@ -533,7 +548,7 @@ function handleFinalPreviewPointerEnd(event) {
 
   activePointers.delete(event.pointerId);
 
-  if (finalPreview.hasPointerCapture(event.pointerId)) {
+  if (finalPreview.hasPointerCapture?.(event.pointerId)) {
     finalPreview.releasePointerCapture(event.pointerId);
   }
 
@@ -541,10 +556,116 @@ function handleFinalPreviewPointerEnd(event) {
   resetGestureStart();
 }
 
+function touchPoints(touches, { requireInside = false } = {}) {
+  return Array.from(touches)
+    .map((touch) => finalPreviewPoint(touch))
+    .filter((point) => point && (!requireInside || point.inside));
+}
+
+function createTouchStart(points) {
+  if (points.length >= 2) {
+    const firstTwo = points.slice(0, 2);
+
+    return {
+      type: "pinch",
+      distance: pointDistance(firstTwo),
+      midpoint: pointMidpoint(firstTwo),
+      transform: { ...state.transform },
+    };
+  }
+
+  if (points.length === 1) {
+    return {
+      type: "drag",
+      point: points[0],
+      transform: { ...state.transform },
+    };
+  }
+
+  return null;
+}
+
+function handleFinalPreviewTouchStart(event) {
+  if (state.step !== 4 || !state.photo || !state.frameConfirmed) {
+    return;
+  }
+
+  const points = touchPoints(event.touches, { requireInside: true });
+
+  if (!points.length) {
+    return;
+  }
+
+  event.preventDefault();
+  resetPointerGestureStart();
+  touchStart = createTouchStart(points);
+  finalPreview.classList.add("is-adjusting");
+}
+
+function handleFinalPreviewTouchMove(event) {
+  if (!touchStart || !state.photo) {
+    return;
+  }
+
+  const points = touchPoints(event.touches);
+
+  if (!points.length) {
+    return;
+  }
+
+  event.preventDefault();
+
+  if (points.length >= 2 && touchStart.type === "pinch" && touchStart.distance) {
+    const firstTwo = points.slice(0, 2);
+    const midpoint = pointMidpoint(firstTwo);
+    const scaleDelta = pointDistance(firstTwo) / touchStart.distance;
+    const oldCenterX = state.frame.width / 2 + touchStart.transform.offsetX;
+    const oldCenterY = state.frame.height / 2 + touchStart.transform.offsetY;
+    const anchorOffsetX = (touchStart.midpoint.x - oldCenterX) * (1 - scaleDelta);
+    const anchorOffsetY = (touchStart.midpoint.y - oldCenterY) * (1 - scaleDelta);
+
+    applyGestureTransform(
+      transformFromGesture({
+        startTransform: touchStart.transform,
+        scaleDelta,
+        offsetDeltaX: midpoint.x - touchStart.midpoint.x + anchorOffsetX,
+        offsetDeltaY: midpoint.y - touchStart.midpoint.y + anchorOffsetY,
+      }),
+    );
+    return;
+  }
+
+  if (points.length === 1 && touchStart.type === "drag") {
+    applyGestureTransform(
+      transformFromGesture({
+        startTransform: touchStart.transform,
+        offsetDeltaX: points[0].x - touchStart.point.x,
+        offsetDeltaY: points[0].y - touchStart.point.y,
+      }),
+    );
+    return;
+  }
+
+  touchStart = createTouchStart(points);
+}
+
+function handleFinalPreviewTouchEnd(event) {
+  if (!touchStart) {
+    return;
+  }
+
+  if (event.touches.length) {
+    touchStart = createTouchStart(touchPoints(event.touches));
+    return;
+  }
+
+  touchStart = null;
+  finalPreview.classList.remove("is-adjusting");
+}
+
 function resetFinalPreviewGesture() {
-  activePointers.clear();
-  dragStart = null;
-  pinchStart = null;
+  resetPointerGestureStart();
+  touchStart = null;
   finalPreview?.classList.remove("is-adjusting");
 }
 
@@ -826,6 +947,10 @@ finalPreview?.addEventListener("pointerdown", handleFinalPreviewPointerDown);
 finalPreview?.addEventListener("pointermove", handleFinalPreviewPointerMove);
 finalPreview?.addEventListener("pointerup", handleFinalPreviewPointerEnd);
 finalPreview?.addEventListener("pointercancel", handleFinalPreviewPointerEnd);
+finalPreview?.addEventListener("touchstart", handleFinalPreviewTouchStart, { passive: false });
+finalPreview?.addEventListener("touchmove", handleFinalPreviewTouchMove, { passive: false });
+finalPreview?.addEventListener("touchend", handleFinalPreviewTouchEnd);
+finalPreview?.addEventListener("touchcancel", handleFinalPreviewTouchEnd);
 shareButton.addEventListener("click", handleShare);
 makeAnotherButton.addEventListener("click", resetCreationFlow);
 
