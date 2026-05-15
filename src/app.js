@@ -833,9 +833,9 @@ async function handlePhotoChange(event) {
     framePreviewCache.clear();
     state.transform = { ...DEFAULT_TRANSFORM };
     normalizeCurrentTransform();
-    updatePhotoUi();
     setStatus("已套用照片，正在前往選相框。");
     setStep(3);
+    updatePhotoUi();
   } catch {
     const failureMessage = isHeicPhotoFile(file)
       ? "HEIC 照片轉換失敗，請換一張照片或先轉成 JPG。"
