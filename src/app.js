@@ -793,7 +793,7 @@ function resetCreationFlow() {
   renderFrameOptions();
   updatePhotoUi();
   setStatus("上傳照片開始製作。");
-  setStep(1);
+  setStep(2);
 }
 
 photoInput.addEventListener("change", handlePhotoChange);
