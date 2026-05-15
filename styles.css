@@ -198,6 +198,10 @@ h2 {
   overflow: hidden;
 }
 
+.frame-screen.is-active {
+  overflow: hidden;
+}
+
 .intro-screen {
   justify-content: center;
   padding-bottom: 8px;
@@ -506,17 +510,23 @@ input:disabled + label {
 .frame-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: 12px;
-  padding-bottom: 8px;
+  grid-template-rows: minmax(0, 0.82fr) minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: stretch;
+  gap: 10px;
+  padding-bottom: 0;
 }
 
 .frame-option {
   display: grid;
-  gap: 9px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 6px;
   width: 100%;
+  height: 100%;
   min-width: 0;
-  padding: 7px;
+  min-height: 0;
+  padding: 4px;
   color: var(--text);
   border: 1px solid transparent;
   border-radius: 8px;
@@ -539,8 +549,9 @@ input:disabled + label {
 .frame-option-preview {
   display: block;
   width: 100%;
-  aspect-ratio: var(--preview-aspect, 4 / 3);
-  object-fit: cover;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
   border-radius: 6px;
   background: var(--white);
 }
@@ -607,6 +618,15 @@ input:disabled + label {
 @media (max-height: 720px) {
   .app-screen.is-active {
     gap: 10px;
+  }
+
+  .frame-list {
+    gap: 8px;
+  }
+
+  .frame-option {
+    gap: 4px;
+    padding: 3px;
   }
 
   .intro-screen {
