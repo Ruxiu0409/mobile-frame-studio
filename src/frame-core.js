@@ -135,3 +135,28 @@ export function normalizeTransform({
     offsetY: clamp(offsetY, -maxOffsetY, maxOffsetY),
   };
 }
+
+export function transformWithGesture({
+  imageWidth,
+  imageHeight,
+  canvasWidth,
+  canvasHeight,
+  currentTransform,
+  scaleDelta = 1,
+  offsetDeltaX = 0,
+  offsetDeltaY = 0,
+}) {
+  const scale = Number.isFinite(currentTransform?.scale) ? currentTransform.scale : 1;
+  const offsetX = Number.isFinite(currentTransform?.offsetX) ? currentTransform.offsetX : 0;
+  const offsetY = Number.isFinite(currentTransform?.offsetY) ? currentTransform.offsetY : 0;
+
+  return normalizeTransform({
+    imageWidth,
+    imageHeight,
+    canvasWidth,
+    canvasHeight,
+    scale: scale * scaleDelta,
+    offsetX: offsetX + offsetDeltaX,
+    offsetY: offsetY + offsetDeltaY,
+  });
+}

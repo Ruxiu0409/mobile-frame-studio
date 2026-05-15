@@ -6,6 +6,7 @@ import {
   isHeicPhotoFile,
   isSupportedPhotoFile,
   normalizeTransform,
+  transformWithGesture,
 } from "./frame-core.js";
 
 const HEIC_CONVERTER_URL = "assets/vendor/heic2any.min.js";
@@ -22,6 +23,8 @@ const fileName = document.querySelector("#fileName");
 const frameList = document.querySelector("#frameList");
 const previewCards = document.querySelectorAll(".photo-workspace, .final-preview");
 const renderedPreviews = document.querySelectorAll(".rendered-preview");
+const finalPreview = document.querySelector(".final-preview");
+const finalRenderedPreview = finalPreview?.querySelector(".rendered-preview");
 const autoToneToggle = document.querySelector("#autoToneToggle");
 const toFrameButton = document.querySelector("#toFrameButton");
 const shareButton = document.querySelector("#shareButton");
@@ -48,8 +51,13 @@ const state = {
 
 const frameCache = new Map();
 const framePreviewCache = new Map();
+const activePointers = new Map();
 let renderFrame = 0;
+let renderScheduled = false;
+let renderPending = false;
 let heicConverterPromise = null;
+let dragStart = null;
+let pinchStart = null;
 
 function setStatus(message, { persistent = false } = {}) {
   statusMessage.textContent = message;
@@ -82,6 +90,10 @@ function setStep(step) {
 
   if (nextStep === 4 && !state.frameConfirmed) {
     nextStep = 3;
+  }
+
+  if (nextStep !== 4) {
+    resetFinalPreviewGesture();
   }
 
   state.step = nextStep;
@@ -343,10 +355,202 @@ function normalizeCurrentTransform() {
     imageHeight: state.photo.height,
     canvasWidth: state.frame.width,
     canvasHeight: state.frame.height,
-    scale: DEFAULT_TRANSFORM.scale,
-    offsetX: DEFAULT_TRANSFORM.offsetX,
-    offsetY: DEFAULT_TRANSFORM.offsetY,
+    scale: state.transform.scale,
+    offsetX: state.transform.offsetX,
+    offsetY: state.transform.offsetY,
   });
+}
+
+function finalPreviewPoint(event) {
+  if (!finalRenderedPreview) {
+    return null;
+  }
+
+  const rect = finalRenderedPreview.getBoundingClientRect();
+
+  if (!rect.width || !rect.height) {
+    return null;
+  }
+
+  return {
+    x: ((event.clientX - rect.left) / rect.width) * state.frame.width,
+    y: ((event.clientY - rect.top) / rect.height) * state.frame.height,
+    inside:
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom,
+  };
+}
+
+function gesturePoints() {
+  return [...activePointers.values()].slice(0, 2);
+}
+
+function pointDistance([first, second]) {
+  return Math.hypot(second.x - first.x, second.y - first.y);
+}
+
+function pointMidpoint([first, second]) {
+  return {
+    x: (first.x + second.x) / 2,
+    y: (first.y + second.y) / 2,
+  };
+}
+
+function beginDragStart() {
+  const [entry] = activePointers.entries();
+
+  if (!entry) {
+    dragStart = null;
+    return;
+  }
+
+  const [pointerId, point] = entry;
+  dragStart = {
+    pointerId,
+    point,
+    transform: { ...state.transform },
+  };
+  pinchStart = null;
+}
+
+function beginPinchStart() {
+  const points = gesturePoints();
+  const distance = pointDistance(points);
+
+  if (!distance) {
+    pinchStart = null;
+    return;
+  }
+
+  pinchStart = {
+    distance,
+    midpoint: pointMidpoint(points),
+    transform: { ...state.transform },
+  };
+  dragStart = null;
+}
+
+function resetGestureStart() {
+  if (activePointers.size >= 2) {
+    beginPinchStart();
+  } else if (activePointers.size === 1) {
+    beginDragStart();
+  } else {
+    dragStart = null;
+    pinchStart = null;
+  }
+}
+
+function applyGestureTransform(nextTransform) {
+  state.transform = nextTransform;
+  framePreviewCache.clear();
+  scheduleRender();
+}
+
+function transformFromGesture({ startTransform, scaleDelta = 1, offsetDeltaX = 0, offsetDeltaY = 0 }) {
+  return transformWithGesture({
+    imageWidth: state.photo.width,
+    imageHeight: state.photo.height,
+    canvasWidth: state.frame.width,
+    canvasHeight: state.frame.height,
+    currentTransform: startTransform,
+    scaleDelta,
+    offsetDeltaX,
+    offsetDeltaY,
+  });
+}
+
+function handleFinalPreviewPointerDown(event) {
+  if (state.step !== 4 || !state.photo || !state.frameConfirmed) {
+    return;
+  }
+
+  const point = finalPreviewPoint(event);
+
+  if (!point?.inside) {
+    return;
+  }
+
+  event.preventDefault();
+  finalPreview.setPointerCapture(event.pointerId);
+  activePointers.set(event.pointerId, point);
+  finalPreview.classList.add("is-adjusting");
+  resetGestureStart();
+}
+
+function handleFinalPreviewPointerMove(event) {
+  if (!activePointers.has(event.pointerId) || !state.photo) {
+    return;
+  }
+
+  const point = finalPreviewPoint(event);
+
+  if (!point) {
+    return;
+  }
+
+  event.preventDefault();
+  activePointers.set(event.pointerId, point);
+
+  if (activePointers.size >= 2 && pinchStart) {
+    const points = gesturePoints();
+    const midpoint = pointMidpoint(points);
+    const scaleDelta = pointDistance(points) / pinchStart.distance;
+    const oldCenterX = state.frame.width / 2 + pinchStart.transform.offsetX;
+    const oldCenterY = state.frame.height / 2 + pinchStart.transform.offsetY;
+    const anchorOffsetX = (pinchStart.midpoint.x - oldCenterX) * (1 - scaleDelta);
+    const anchorOffsetY = (pinchStart.midpoint.y - oldCenterY) * (1 - scaleDelta);
+
+    applyGestureTransform(
+      transformFromGesture({
+        startTransform: pinchStart.transform,
+        scaleDelta,
+        offsetDeltaX: midpoint.x - pinchStart.midpoint.x + anchorOffsetX,
+        offsetDeltaY: midpoint.y - pinchStart.midpoint.y + anchorOffsetY,
+      }),
+    );
+    return;
+  }
+
+  if (activePointers.size === 1 && dragStart) {
+    const dragPoint = activePointers.get(dragStart.pointerId);
+
+    if (!dragPoint) {
+      return;
+    }
+
+    applyGestureTransform(
+      transformFromGesture({
+        startTransform: dragStart.transform,
+        offsetDeltaX: dragPoint.x - dragStart.point.x,
+        offsetDeltaY: dragPoint.y - dragStart.point.y,
+      }),
+    );
+  }
+}
+
+function handleFinalPreviewPointerEnd(event) {
+  if (!activePointers.has(event.pointerId)) {
+    return;
+  }
+
+  activePointers.delete(event.pointerId);
+
+  if (finalPreview.hasPointerCapture(event.pointerId)) {
+    finalPreview.releasePointerCapture(event.pointerId);
+  }
+
+  finalPreview.classList.toggle("is-adjusting", activePointers.size > 0);
+  resetGestureStart();
+}
+
+function resetFinalPreviewGesture() {
+  activePointers.clear();
+  dragStart = null;
+  pinchStart = null;
+  finalPreview?.classList.remove("is-adjusting");
 }
 
 function drawEmptyState() {
@@ -440,9 +644,22 @@ function syncRenderedPreviews() {
 }
 
 function scheduleRender() {
+  if (renderScheduled) {
+    renderPending = true;
+    return;
+  }
+
+  renderScheduled = true;
   window.requestAnimationFrame(() => {
+    renderPending = false;
     render().catch(() => {
       setStatus("相框載入失敗，請重新整理頁面。", { persistent: true });
+    }).finally(() => {
+      renderScheduled = false;
+
+      if (renderPending) {
+        scheduleRender();
+      }
     });
   });
 }
@@ -566,6 +783,7 @@ function resetCreationFlow() {
   state.autoTone = true;
   state.transform = { ...DEFAULT_TRANSFORM };
 
+  resetFinalPreviewGesture();
   photoInput.value = "";
   autoToneToggle.checked = true;
   canvas.width = state.frame.width;
@@ -609,6 +827,10 @@ autoToneToggle.addEventListener("change", () => {
   scheduleRender();
 });
 
+finalPreview?.addEventListener("pointerdown", handleFinalPreviewPointerDown);
+finalPreview?.addEventListener("pointermove", handleFinalPreviewPointerMove);
+finalPreview?.addEventListener("pointerup", handleFinalPreviewPointerEnd);
+finalPreview?.addEventListener("pointercancel", handleFinalPreviewPointerEnd);
 shareButton.addEventListener("click", handleShare);
 makeAnotherButton.addEventListener("click", resetCreationFlow);
 

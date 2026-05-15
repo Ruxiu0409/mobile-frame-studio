@@ -269,6 +269,7 @@ h2 {
   border: 0;
   background: transparent;
   box-shadow: none;
+  touch-action: none;
 }
 
 .hero-frame img,
@@ -294,6 +295,14 @@ h2 {
   border-radius: 8px;
   background: var(--white);
   box-shadow: var(--shadow);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.finish-screen .final-preview.is-adjusting .rendered-preview {
+  cursor: grabbing;
 }
 
 #previewCanvas {

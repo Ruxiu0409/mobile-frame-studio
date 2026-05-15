@@ -13,6 +13,7 @@ import {
   isHeicPhotoFile,
   isSupportedPhotoFile,
   normalizeTransform,
+  transformWithGesture,
 } from "../src/frame-core.js";
 
 function pngSize(filePath) {
@@ -117,6 +118,27 @@ test("normalizeTransform clamps scale and offsets", () => {
   assert.equal(transform.scale, 1);
   assert.equal(transform.offsetX, 0);
   assert.equal(transform.offsetY, 0);
+});
+
+test("transformWithGesture preserves final-page pinch and drag adjustments", () => {
+  const transform = transformWithGesture({
+    imageWidth: 4000,
+    imageHeight: 3000,
+    canvasWidth: 2400,
+    canvasHeight: 1800,
+    currentTransform: {
+      scale: 1.2,
+      offsetX: 80,
+      offsetY: 0,
+    },
+    scaleDelta: 1.5,
+    offsetDeltaX: 140,
+    offsetDeltaY: -260,
+  });
+
+  assert.equal(Number(transform.scale.toFixed(2)), 1.8);
+  assert.equal(transform.offsetX, 220);
+  assert.equal(transform.offsetY, -260);
 });
 
 test("clamp constrains values inclusively", () => {
